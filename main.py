@@ -16,7 +16,7 @@ from PyQt5.QtCore import (
 )
 from PyQt5.QtGui import (
     QPainter, QColor, QBrush, QPen, QPaintEvent,
-    QLinearGradient, QGradient
+    QLinearGradient, QGradient, QPixmap, QImage
 )
 
 try:
@@ -24,7 +24,7 @@ try:
 except ImportError:
     raise ImportError(
         "Il modulo PyQtWebEngine non è installato.\n"
-        "Installa eseguendo: pip install PyQtWebEngine"
+        "Installa eseguendo: pip install PyQt5-WebEngine" # Corretto il nome del pacchetto per pip
     )
 from PyQt5.QtWebChannel import QWebChannel
 
@@ -70,14 +70,31 @@ class JSBridge(QObject):
 class CustomProgressBar(QProgressBar):
     def __init__(self, parent=None):
         super().__init__(parent)
-        # Inizializza lo stato dell'animazione
         self._animation_phase = 0
 
-        # Configura un timer per l'animazione (~60 FPS)
         self._animation_timer = QTimer(self)
         self._animation_timer.timeout.connect(self.animate)
-        # *** RI-ABILITATO: Avvia il timer ***
-        self._animation_timer.start(16)
+        self._animation_timer.start(16) # Avvia il timer (~60 FPS)
+
+        # --- Carica e scala l'immagine dell'aereo ---
+        # Sostituisci 'aereo.png' con il percorso reale del tuo file immagine
+        self._plane_image = QPixmap('aereo.png')
+        if self._plane_image.isNull():
+            print("Errore: Impossibile caricare l'immagine 'aereo.png'. Assicurati che il file esista.")
+            # Puoi impostare un flag o usare un'immagine placeholder
+            # self._plane_image_loaded = False
+        # else:
+            # self._plane_image_loaded = True
+
+        # Scala l'immagine per adattarla approssimativamente all'altezza della progress bar
+        target_height = 25 # Altezza approssimativa desiderata per la barra nel layout
+        if not self._plane_image.isNull():
+            self._plane_image = self._plane_image.scaledToHeight(
+                target_height - 4 if target_height > 4 else 1, # Riduci leggermente per stare dentro il bordo
+                Qt.KeepAspectRatio,
+                Qt.SmoothTransformation
+            )
+        # TODO: Per una scalatura dinamica al ridimensionamento, overrideare resizeEvent e riscalare l'immagine lì.
 
 
         self.setStyleSheet("""
@@ -94,17 +111,15 @@ class CustomProgressBar(QProgressBar):
         """)
         self.setTextVisible(False)
 
+    # Metodo chiamato dal timer per aggiornare lo stato dell'animazione
     def animate(self):
-        # Aggiorna la fase dell'animazione (incrementa e ripete)
-        # La velocità e la lunghezza dell'animazione dipendono da questo incremento e dal modulo (%)
-        self._animation_phase = (self._animation_phase + 2) % 200 # Incremento e lunghezza ciclo animazione
+        self._animation_phase = (self._animation_phase + 2) % 200 # Controlla velocità/lunghezza ciclo animazione
         self.update() # Richiede un ridisegno
 
-    # Override del metodo di disegno - Disegno con Gradiente Animato (Metodo Spostamento Painter)
+    # Override del metodo di disegno
     def paintEvent(self, event: QPaintEvent):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
-        # Rimosso painter.translate(self.rect().topLeft())
 
         rect = self.rect()
         borderRadius = 5
@@ -112,69 +127,54 @@ class CustomProgressBar(QProgressBar):
         # --- Disegno del background arrotondato con bordo ---
         painter.setBrush(QBrush(QColor("#ecf0f1")))
         painter.setPen(QPen(QColor("#bdc3c7"), 1))
-        # Disegna il rettangolo esterno con bordi arrotondati
         painter.drawRoundedRect(rect, borderRadius, borderRadius)
 
 
-        # --- Disegno della parte riempita (chunk) ---
+        # --- Disegno della parte riempita e dell'aereo ---
         if self.maximum() > self.minimum():
-            # Calcola la larghezza della parte riempita basata sul valore corrente
-            # Riduciamo la larghezza totale di 2px per tenere conto del bordo
             barWidth = rect.width() - 2
             chunkWidth = int(((self.value() - self.minimum()) / (self.maximum() - self.minimum())) * barWidth)
 
             if chunkWidth > 0:
-                # Definisci il rettangolo che rappresenta la parte riempita (interno al bordo)
                 chunkFillRect = QRectF(rect.left() + 1, rect.top() + 1, chunkWidth, rect.height() - 2)
 
-                # --- Gradiente Animato (Spostamento del Painter) ---
-                # Definiamo un gradiente lineare che va da x=0 a x=50 (un pattern di 50px)
-                # Questo gradiente verrà poi "spostato" applicando una traslazione al painter
-                gradient = QLinearGradient(0, 0, 50, 0) # Gradiente definito su 50px di lunghezza
+                # --- Applica il ritaglio all'area riempita ---
+                painter.save() # Salva lo stato del painter
+                painter.setClipRect(chunkFillRect) # Disegna solo dentro chunkFillRect
 
-                # Definiamo gli stop del gradiente (es. blu-scuro -> blu-chiaro -> blu-scuro)
-                gradient.setColorAt(0.0, QColor("#2980b9")) # Blu scuro all'inizio del pattern
-                gradient.setColorAt(0.5, QColor("#3498db")) # Blu chiaro a metà
-                gradient.setColorAt(1.0, QColor("#2980b9")) # Blu scuro alla fine del pattern
+                # --- Disegna l'immagine dell'aereo all'interno dell'area ritagliata ---
+                # Verifica se l'immagine è stata caricata correttamente
+                if not self._plane_image.isNull():
+                    plane_width = self._plane_image.width()
+                    plane_height = self._plane_image.height()
 
-                # Imposta la modalità di ripetizione per coprire l'intera area del chunk
-                gradient.setSpread(QGradient.RepeatSpread)
+                    # Calcola la posizione X dell'aereo (spostato dall'offset animato)
+                    # Mappiamo la fase di animazione su un movimento orizzontale (es. 10px totali)
+                    animated_offset_x = math.sin(self._animation_phase / 100.0 * 2 * math.pi) * 5 # Movimento ondulatorio di 5px
+                    # Posiziona l'aereo in modo che il suo bordo destro sia vicino al bordo destro del chunkFillRect
+                    plane_x = chunkFillRect.right() - plane_width + animated_offset_x - 5 # -5px di distanza dal bordo
 
-                # Calcola lo spostamento basato sulla fase di animazione
-                # Mappiamo la fase (0-199) su uno spostamento che si ripete sulla lunghezza del gradiente pattern (50px)
-                offset = (self._animation_phase / 199.0) * 50.0 # Spostamento massimo = lunghezza pattern
+                    # Calcola la posizione Y dell'aereo (centrato verticalmente nel rettangolo riempito)
+                    plane_y = chunkFillRect.center().y() - plane_height / 2
 
-                # --- Applica la traslazione al Painter per spostare il gradiente ---
-                painter.save() # Salva lo stato attuale del painter (posizione, ecc.)
-                # Trasla l'origine del painter all'inizio del chunk, più lo spostamento animato
-                # Il gradiente definito da (0,0) a (50,0) verrà disegnato a partire da questa nuova origine
-                painter.translate(chunkFillRect.left() - offset, chunkFillRect.top())
+                    # Disegna l'immagine
+                    painter.drawPixmap(int(plane_x), int(plane_y), self._plane_image)
 
-                # --- Disegna il rettangolo riempito nel sistema di coordinate traslato ---
-                # Disegniamo un rettangolo la cui larghezza è la larghezza del chunkFillRect
-                # e altezza è l'altezza del chunkFillRect, partendo da (0,0) nel sistema traslato.
-                painter.setBrush(QBrush(gradient)) # Usa il gradiente come riempimento
-                painter.setPen(Qt.NoPen) # Nessun bordo per il chunk
+                painter.restore() # Ripristina lo stato del painter (rimuove il ritaglio)
 
-                # Disegna il rettangolo riempito. Il gradiente si muoverà a causa della traslazione animata.
-                # La larghezza qui è la larghezza del chunk effettivo.
-                painter.drawRect(QRectF(0, 0, chunkFillRect.width() + offset, chunkFillRect.height())) # Aggiusta larghezza per coprire l'offset iniziale?
-
-
-                painter.restore() # Ripristina lo stato del painter (rimuove la traslazione)
-
-                # --- Esempio di Disegno di una Linea Mobile Sopra (Opzionale) ---
-                # Se vuoi disegnare qualcosa SOPRA il gradiente animato, fallo qui DOPO painter.restore()
-                # Ad esempio, la linea bianca semi-trasparente che si muove
-                # lineX_absolute = chunkFillRect.left() + (self._animation_phase / 199.0) * chunkFillRect.width()
-                # painter.setPen(QPen(QColor(255, 255, 255, 100), 2))
-                # painter.drawLine(int(lineX_absolute), int(chunkFillRect.top()), int(lineX_absolute), int(chunkFillRect.bottom()))
+                # --- Opzionale: Disegna un colore di base sotto l'aereo ritagliato ---
+                # Questo assicura che l'area riempita abbia un colore anche dove non c'è l'aereo
+                # (es. all'inizio della barra).
+                painter.setBrush(QBrush(QColor("#3498db"))) # Colore di riempimento base
+                painter.setPen(Qt.NoPen)
+                # Disegna il rettangolo riempito con colore solido (copre l'area del chunk)
+                painter.drawRect(chunkFillRect)
 
 
-# --- Fine Classe CustomProgressBar (Metodo Aggiornato) ---
+# --- Fine Classe CustomProgressBar ---
 
 
-# --- Classe App (Rimane invariata) ---
+# --- Classe App ---
 class App(QWidget):
     def __init__(self):
         super().__init__()
@@ -256,12 +256,12 @@ class App(QWidget):
         progress_layout.setSpacing(5)
 
         # ** Usa la tua CustomProgressBar qui **
-        self.progress = CustomProgressBar() # *** Usiamo la classe personalizzata ***
+        self.progress = CustomProgressBar()
         self.progress.setRange(0, 100) # Imposta un range di default
 
         progress_layout.addWidget(self.progress, stretch=1)
 
-        self.progress_label = QLabel("0%") # Label per il percentuale
+        self.progress_label = QLabel("0%")
         self.progress_label.setStyleSheet("""
             QLabel {
                 color: #333333;
@@ -621,7 +621,14 @@ class App(QWidget):
                         ws.cell(row=original_row_index, column=5, value=res['Provvedimento'])
                         ws.cell(row=original_row_index, column=6, value=res['Data Provvedimento'])
                         ws.cell(row=original_row_index, column=7, value=res['Codice richiesta (risultato)'])
-                        ws.cell(row=original_row_index, column=8, value=res['Note Usmaf'])
+
+                        # --- Modifica qui per controllare se il campo Note Usmaf è vuoto ---
+                        note_usmaf_value = res['Note Usmaf']
+                        if note_usmaf_value == '' or note_usmaf_value is None:
+                            note_usmaf_value = "Nota Usmaf" # Imposta il valore predefinito
+                        ws.cell(row=original_row_index, column=8, value=note_usmaf_value)
+                        # --- Fine modifica ---
+
                     else:
                          self.log_message(f"⚠️ Attenzione: impossibile trovare riga originale nel file Excel (Colonna B) per codice input: {res['Input Code']}. Dati non salvati per questo codice.")
 
