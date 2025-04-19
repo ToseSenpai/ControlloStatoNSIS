@@ -1,15 +1,13 @@
 # main.py
-# Entry point for the application (Versione senza tema Fluent)
+# Entry point for the application
 
 import sys
 from PyQt6 import QtWidgets
-# Assicurati che main_window importato sia la versione corretta (vedi sotto)
 from main_window import App
 
-# Verifica preliminare moduli WebEngine (mantenuta)
+# Verifica preliminare moduli WebEngine
 try:
     from PyQt6 import QtWebEngineWidgets, QtWebEngineCore, QtWebChannel
-
     _ = QtWebEngineWidgets.QWebEngineView
     _ = QtWebEngineCore.QWebEnginePage
     _ = QtWebChannel.QWebChannel
@@ -22,9 +20,6 @@ except ImportError:
 # --- Esecuzione Applicazione ---
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
-
-    # NESSUNA CHIAMATA a setTheme qui
-
     window = App()
     window.show()
     sys.exit(app.exec())
