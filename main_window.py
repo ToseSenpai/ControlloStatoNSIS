@@ -283,6 +283,25 @@ class App(QtWidgets.QWidget):
 
         logger.info("Applicazione inizializzata con icone qtawesome (se disponibile).")
 
+        # >>> INCOLLA QUI IL NUOVO METODO _clear_log <<<
+    @QtCore.pyqtSlot()
+    def _clear_log(self):
+            """Slot per pulire il contenuto del widget di log."""
+            # Chiedi conferma prima di pulire
+            user_confirmation = QtWidgets.QMessageBox.question(self, "Conferma Pulizia Log",
+                                                               "Sei sicuro di voler cancellare tutto il contenuto del log?",
+                                                               QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No,
+                                                               QtWidgets.QMessageBox.StandardButton.No)  # Default è No
+            if user_confirmation == QtWidgets.QMessageBox.StandardButton.Yes:
+                if self.log:  # Controlla se self.log esiste
+                    self.log.clear()
+                    logger.info("Log pulito dall'utente.")
+                    # OPZIONALE: Aggiungi un messaggio al log appena pulito
+                    self.log.append("<i>Log pulito.</i>")
+                # Potresti disabilitare il pulsante qui se il log è vuoto:
+                # self.btn_clear_log.setEnabled(self.log.toPlainText() != "")
+        # >>> FINE METODO _clear_log <<<
+
 
     def _setup_logging(self):
         """Configura il modulo logging per Console e File."""
@@ -353,6 +372,7 @@ class App(QtWidgets.QWidget):
         else: icon_back = self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_ArrowBack)
         self.btn_back.setIcon(icon_back); self.btn_back.setToolTip("Indietro")
         self.btn_back.setEnabled(False); self.btn_back.clicked.connect(self.view.back)
+        self.btn_back.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         nav_toolbar_layout.addWidget(self.btn_back)
 
         self.btn_forward = QtWidgets.QPushButton()
@@ -361,6 +381,7 @@ class App(QtWidgets.QWidget):
         else: icon_forward = self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_ArrowForward)
         self.btn_forward.setIcon(icon_forward); self.btn_forward.setToolTip("Avanti")
         self.btn_forward.setEnabled(False); self.btn_forward.clicked.connect(self.view.forward)
+        self.btn_forward.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         nav_toolbar_layout.addWidget(self.btn_forward)
 
         self.btn_reload = QtWidgets.QPushButton()
@@ -369,6 +390,7 @@ class App(QtWidgets.QWidget):
         else: icon_reload = self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_BrowserReload)
         self.btn_reload.setIcon(icon_reload); self.btn_reload.setToolTip("Ricarica Pagina")
         self.btn_reload.setEnabled(False); self.btn_reload.clicked.connect(self.view.reload)
+        self.btn_reload.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         nav_toolbar_layout.addWidget(self.btn_reload)
 
         nav_toolbar_layout.addStretch()
@@ -383,14 +405,70 @@ class App(QtWidgets.QWidget):
 
         ctrl_container = QtWidgets.QFrame()
         ctrl_container.setObjectName("ControlContainer")
+        # Stile base per il contenitore esterno
+        # Stile per il contenitore esterno e i gruppi interni
         ctrl_container.setStyleSheet("""
-            #ControlContainer { background-color: #f8f8f8; border: 1px solid #dddddd;
-                               border-radius: 8px; padding: 10px; }
+            /* Contenitore principale destro */
+            QFrame#ControlContainer {
+                background-color: #f8f8f8; /* Sfondo generale */
+                border: 1px solid #E0E0E0; /* Bordo esterno più morbido */
+                border-radius: 8px;
+                padding: 8px;
+            }
+
+            /* Stile per i QGroupBox */
+            QGroupBox {
+                font-weight: bold;
+                /* Togliamo il bordo e lo sfondo diretti qui per evitare conflitti, */
+                /* lo applichiamo indirettamente sotto se necessario o usiamo padding/margin */
+                border: none; /* Rimuovi il bordo base qui */
+                margin-top: 18px; /* Aumenta spazio sopra per titolo più distanziato */
+                padding-top: 10px; /* Aggiungi padding sopra DENTRO il box (sotto il titolo) */
+                /* background-color: #FFFFFF; /* OPZIONALE: prova con e senza sfondo bianco */
+            }
+
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top left;
+                left: 8px; /* Sposta il titolo un po' a destra dal bordo */
+                padding: 0 4px; /* Padding orizzontale per il testo del titolo */
+                /* background-color: #f8f8f8; /* Sfondo titolo = sfondo parent */
+                background-color: #EAEAEA; /* Sfondo titolo leggermente diverso? */
+                border: 1px solid #D0D0D0;
+                border-radius: 4px;
+                color: #333333; /* Colore testo titolo scuro */
+            }
+
+            /* Selettore specifico per assicurare stile ai pulsanti DENTRO i QGroupBox */
+            /* QGroupBox QPushButton#ActionButton { */
+                /* NON aggiungere regole qui se vuoi che gli setStyleSheet diretti prevalgano */
+            /* } */
+
+            /* Stilizzazione base (fallback) per i pulsanti nel contenitore se necessario,
+               ma DARE PRIORITA' agli stili specifici applicati con setStyleSheet() */
+            /* QPushButton { ... } */
+
+            /* Stile per i QFrame usati come separatori (se decidessi di rimetterli) */
+            QFrame[Shape="HLine"] {
+                border: none;
+                border-top: 1px solid #E0E0E0;
+                height: 1px;
+                margin: 5px 0px; /* Margine sopra/sotto */
+            }
+
+            /* Stile base per i QLabel nei gruppi (puoi specializzare se serve) */
+            QGroupBox QLabel {
+                 background-color: transparent; /* Assicura sfondo trasparente */
+                 /* color: #1A1A1A; /* Colore di default già impostato altrove? */
+                 padding: 1px;
+            }
         """)
         ctrl_layout = QtWidgets.QVBoxLayout(ctrl_container)
-        ctrl_layout.setContentsMargins(5, 5, 5, 5); ctrl_layout.setSpacing(8)
+        ctrl_layout.setContentsMargins(5, 5, 5, 5)
+        ctrl_layout.setSpacing(15)  # Aumenta ancora un po' la spaziatura TRA i gruppi
         right_column_layout.addWidget(ctrl_container)
 
+        # Definizioni degli stili dei pulsanti (invariati)
         professional_button_style = """
             QPushButton { background-color: #F9F9F9; color: #1A1A1A; border: 1px solid #E0E0E0;
                           padding: 7px 12px; border-radius: 4px; font-weight: 600; outline: none;
@@ -416,83 +494,239 @@ class App(QtWidgets.QWidget):
             QPushButton:disabled { background-color: #FEF2F2; color: #FCA5A5; border-color: #FEE2E2; }
         """
 
+        # NON SERVE modificare altro codice per questa correzione.
+        # Assicurati solo che le chiamate successive come
+        # self.btn_open.setStyleSheet(professional_button_style)
+        # ...etc...
+        # siano ancora presenti dopo queste definizioni aggiornate.
+
+        # --- Gruppo Azioni ---
+        action_group = QtWidgets.QGroupBox("Azioni")
+        action_layout = QtWidgets.QVBoxLayout(action_group)
+        action_layout.setSpacing(6)  # Spaziatura tra i pulsanti
+
         self.btn_open = QtWidgets.QPushButton(" Apri NSIS")
         self.btn_open.setObjectName("ActionButton")
         if QTAWESOME_AVAILABLE: self.btn_open.setIcon(qta.icon('fa5s.external-link-alt', color=self.icon_color_open))
-        self.btn_open.clicked.connect(self.open_nsis_url_test); self.btn_open.setStyleSheet(professional_button_style)
-        ctrl_layout.addWidget(self.btn_open)
+        self.btn_open.clicked.connect(self.open_nsis_url_test)
+        self.btn_open.setStyleSheet(professional_button_style)
+        self.btn_open.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))  # Aggiunto cursore
+        action_layout.addWidget(self.btn_open)
 
         self.btn_start = QtWidgets.QPushButton(" Seleziona e Avvia")
         self.btn_start.setObjectName("ActionButton")
         if QTAWESOME_AVAILABLE: self.btn_start.setIcon(qta.icon('fa5s.play', color=self.icon_color_start))
-        self.btn_start.clicked.connect(self.start_processing); self.btn_start.setStyleSheet(primary_button_style)
-        ctrl_layout.addWidget(self.btn_start)
+        self.btn_start.clicked.connect(self.start_processing)
+        self.btn_start.setStyleSheet(primary_button_style)
+        self.btn_start.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))  # Aggiunto cursore
+        action_layout.addWidget(self.btn_start)
 
         self.btn_stop = QtWidgets.QPushButton(" Interrompi")
         self.btn_stop.setObjectName("ActionButton")
         if QTAWESOME_AVAILABLE: self.btn_stop.setIcon(qta.icon('fa5s.stop', color=self.icon_color_stop))
-        self.btn_stop.clicked.connect(self.stop_processing); self.btn_stop.setEnabled(False)
+        self.btn_stop.clicked.connect(self.stop_processing);
+        self.btn_stop.setEnabled(False)
         self.btn_stop.setStyleSheet(stop_button_style)
-        ctrl_layout.addWidget(self.btn_stop)
+        self.btn_stop.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))  # Aggiunto cursore
+        action_layout.addWidget(self.btn_stop)
 
-        ctrl_layout.addSpacing(10)
-        line1 = QtWidgets.QFrame(); line1.setFrameShape(QtWidgets.QFrame.Shape.HLine); line1.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
-        ctrl_layout.addWidget(line1); ctrl_layout.addSpacing(10)
 
-        progress_layout = QtWidgets.QHBoxLayout(); progress_layout.setContentsMargins(0,0,0,0); progress_layout.setSpacing(5)
-        self.spinner = SpinnerWidget(self); progress_layout.addWidget(self.spinner)
-        self.progress = CustomProgressBar(); self.progress.setRange(0, 100); self.progress.setValue(0)
+        # === NUOVO CODICE PER ETICHETTA FILE ===
+        action_layout.addSpacing(8) # Aggiunge uno spazio prima dell'etichetta
+        self.file_label = QtWidgets.QLabel("Nessun file selezionato")
+        self.file_label.setObjectName("FileLabel") # Per stile QSS
+        self.file_label.setStyleSheet("""
+            QLabel#FileLabel {
+                color: #555555; /* Grigio scuro */
+                font-size: 9px;  /* Font piccolo */
+                /* text-align: center; -- Allineamento non funziona diretto in QLabel con QSS */
+                padding: 3px;
+                border: 1px solid #E8E8E8; /* Bordo leggero opzionale */
+                border-radius: 3px;
+                background-color: #FDFDFD; /* Sfondo molto chiaro */
+                min-height: 18px; /* Altezza minima per visibilità */
+                /* Word-wrap non disponibile direttamente in QLabel, useremo elisione */
+            }
+        """)
+        # Imposta elisione se il testo è troppo lungo
+        self.file_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter) # Centra il testo
+        self.file_label.setWordWrap(False) # Disabilita word-wrap (inutile per nomi file)
+        # Elide Middle taglia la parte centrale del nome file se troppo lungo: /path/.../nomefile.xlsx
+        font_metrics = QtGui.QFontMetrics(self.file_label.font())
+        # Nota: l'elisione con QSS/QLabel a volte è problematica. Qt gestisce automaticamente
+        # l'elisione (generalmente alla fine: ...) se il testo non entra. ElideMiddle è
+        # un tentativo, ma potrebbe non essere sempre perfetto a seconda dello spazio.
+        # La chiamata esplicita è tramite paintEvent, qui ci affidiamo a Qt di base.
+        # self.file_label.elideText = lambda text, width: font_metrics.elidedText(text, QtCore.Qt.TextElideMode.ElideMiddle, width)
+
+        self.file_label.setToolTip("File Excel attualmente caricato per l'elaborazione")
+        action_layout.addWidget(self.file_label)
+        # === FINE NUOVO CODICE ===
+
+        ctrl_layout.addWidget(action_group) # Riga esistente
+
+        ctrl_layout.addWidget(action_group)  # Aggiunge il gruppo al layout principale
+
+        # --- Gruppo Progresso ---
+        progress_group = QtWidgets.QGroupBox("Progresso Elaborazione")
+        progress_group_layout = QtWidgets.QVBoxLayout(progress_group)
+        progress_group_layout.setSpacing(6)
+
+        progress_layout = QtWidgets.QHBoxLayout();
+        progress_layout.setContentsMargins(0, 0, 0, 0);
+        progress_layout.setSpacing(5)
+        self.spinner = SpinnerWidget(self);
+        progress_layout.addWidget(self.spinner)
+        self.progress = CustomProgressBar();
+        self.progress.setRange(0, 100);
+        self.progress.setValue(0)
         progress_layout.addWidget(self.progress, stretch=1)
-        self.progress_label = QtWidgets.QLabel("0%"); self.progress_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight | QtCore.Qt.AlignmentFlag.AlignVCenter)
-        self.progress_label.setMinimumWidth(35); self.progress_label.setStyleSheet("color: #1A1A1A;")
+        self.progress_label = QtWidgets.QLabel("0%");
+        self.progress_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight | QtCore.Qt.AlignmentFlag.AlignVCenter)
+        self.progress_label.setMinimumWidth(35);
+        self.progress_label.setStyleSheet("color: #1A1A1A;")
         progress_layout.addWidget(self.progress_label)
-        ctrl_layout.addLayout(progress_layout)
+        progress_group_layout.addLayout(progress_layout)
 
         self.status = QtWidgets.QLabel("Pronto.", alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.status.setStyleSheet("color: #1A1A1A;")
-        ctrl_layout.addWidget(self.status)
+        self.status.setStyleSheet("color: #1A1A1A; padding-top: 5px;")  # Aggiunto padding sopra lo stato
+        progress_group_layout.addWidget(self.status)
 
-        self.log = QtWidgets.QTextEdit()  # Crea il widget
-        self.log.setReadOnly(True)  # Lo rende non modificabile dall'utente
+        ctrl_layout.addWidget(progress_group)  # Aggiunge il gruppo al layout principale
 
-        # La riga del placeholder è stata rimossa, NON c'è più setPlaceholderText qui.
+        # === INIZIO BLOCCO DA SOSTITUIRE / INSERIRE ===
 
-        # Applica uno stile per il log (colore testo più scuro per leggibilità)
-        self.log.setStyleSheet(f""" QTextEdit {{
-                border: 1px solid #E0E0E0;
-                border-radius: 4px;
-                padding: 5px;
-                font-size: 10px;
-                color: #333333; /* Nero/Grigio scuro invece di grigio chiaro */
-                background-color: #FFFFFF;
-            }} """)
-        ctrl_layout.addWidget(self.log)  # Aggiunge il widget al layout
+        # --- Gruppo Log Operazioni ---
+        log_group = QtWidgets.QGroupBox("Log Operazioni")
+        log_group_layout = QtWidgets.QVBoxLayout(log_group)
+        log_group_layout.setContentsMargins(4, 12, 4, 4)  # Aumentato margine superiore per titolo, altri stretti
+        log_group_layout.setSpacing(4)  # Spazio tra toolbar e textedit
 
+        # Layout orizzontale per i controlli sopra il log
+        log_toolbar_layout = QtWidgets.QHBoxLayout()
+        log_toolbar_layout.setContentsMargins(0, 0, 0, 2)  # Piccolo spazio sotto la toolbar
+        log_toolbar_layout.setSpacing(4)
 
-        ctrl_layout.addSpacing(10)
-        line2 = QtWidgets.QFrame(); line2.setFrameShape(QtWidgets.QFrame.Shape.HLine); line2.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
-        ctrl_layout.addWidget(line2); ctrl_layout.addSpacing(10)
+        log_toolbar_layout.addStretch()  # Spinge elementi successivi a destra
 
-        self.badge_layout = QtWidgets.QVBoxLayout(); self.badge_layout.setSpacing(4)
-        ctrl_layout.addLayout(self.badge_layout)
+        self.btn_clear_log = QtWidgets.QPushButton()
+        self.btn_clear_log.setObjectName("ClearLogButton")
+        self.btn_clear_log.setToolTip("Pulisci l'area messaggi di log")
+        icon_clear = QtGui.QIcon()  # Icona vuota di default
+        if QTAWESOME_AVAILABLE:
+            try:
+                icon_clear = qta.icon('fa5s.trash-alt', color='#D32F2F', color_disabled='#AAAAAA')
+            except Exception as e_icon:
+                logger.warning(f"Errore creazione icona 'trash-alt': {e_icon}")
+        self.btn_clear_log.setIcon(icon_clear)
 
+        # Stile per il pulsante "Pulisci Log"
+        self.btn_clear_log.setStyleSheet("""
+             QPushButton#ClearLogButton {
+                 background-color: transparent;
+                 border: 1px solid #E0E0E0;
+                 border-radius: 3px;
+                 padding: 3px;
+                 min-width: 24px; max-width: 24px;
+                 min-height: 24px; max-height: 24px;
+                 outline: none;
+             }
+             QPushButton#ClearLogButton:hover {
+                 background-color: #F0F0F0;
+                 border-color: #C0C0C0;
+             }
+             QPushButton#ClearLogButton:pressed {
+                 background-color: #E0E0E0;
+                 border-color: #B0B0B0;
+             }
+             QPushButton#ClearLogButton:disabled {
+                  border-color: #F0F0F0;
+                  /* L'icona color_disabled viene gestita da qtawesome se disponibile */
+             }
+        """)
+        self.btn_clear_log.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        self.btn_clear_log.clicked.connect(self._clear_log)  # Slot definito separatamente
+
+        log_toolbar_layout.addWidget(self.btn_clear_log)  # Aggiunge il pulsante alla toolbar
+
+        # Aggiunge la toolbar al layout del gruppo
+
+        # Crea e configura il widget QTextEdit per il log
+        self.log = QtWidgets.QTextEdit()
+        self.log.setReadOnly(True)
+        self.log.setStyleSheet("""
+            QTextEdit {
+                background-color: #FFFFFF; border: 1px solid #D6D6D6;
+                border-radius: 4px; padding: 6px 8px; color: #2B2B2B;
+                font-family: "Segoe UI", Arial, sans-serif; font-size: 10px;
+                selection-background-color: #0078D4; selection-color: white;
+            }
+            QTextEdit:focus { border: 1px solid #0078D4; }
+            QTextEdit:!enabled { background-color: #F0F0F0; color: #A0A0A0; border: 1px solid #E0E0E0; }
+            QTextEdit QScrollBar:vertical { border: none; background: #F0F0F0; width: 8px; margin: 0px; }
+            QTextEdit QScrollBar::handle:vertical { background: #C0C0C0; min-height: 20px; border-radius: 4px; }
+            QTextEdit QScrollBar::handle:vertical:hover { background: #A0A0A0; }
+            QTextEdit QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; background: none; }
+            QTextEdit QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: none; }
+        """)
+
+        # *** ORDINE INVERTITO QUI ***
+        # 1. Aggiungi il widget di log al layout del gruppo
+        log_group_layout.addWidget(self.log, stretch=1)
+
+        # 2. Aggiungi la toolbar al layout del gruppo (sotto il log)
+        log_group_layout.addLayout(log_toolbar_layout)
+        # *** FINE ORDINE INVERTITO ***
+
+        # Aggiunge l'intero gruppo "Log Operazioni" al layout principale
+        ctrl_layout.addWidget(log_group, stretch=1)
+
+        # === FINE BLOCCO DA SOSTITUIRE / INSERIRE ===
+
+        # --- Gruppo Riepilogo Stati (Badge) ---
+        # ... il codice per i badge inizia qui ...
+
+        # --- Gruppo Riepilogo Stati (Badge) ---
+        badge_group = QtWidgets.QGroupBox("Riepilogo Stati")
+        self.badge_layout = QtWidgets.QVBoxLayout(badge_group)  # Applica il layout al QGroupBox
+        self.badge_layout.setContentsMargins(5, 8, 5, 8)  # Aggiusta margini interni badge
+        self.badge_layout.setSpacing(6)  # Spazio tra i badge
+
+        # Qui crei i badge come prima, ma verranno aggiunti a self.badge_layout
+        # che ora è DENTRO badge_group. La logica di creazione badge NON cambia.
         badge_data = [
             ("🟡", "Annullate", COLOR_ANNULATA), ("🟢", "Aperte", COLOR_APERTA),
             ("✅", "Chiuse", COLOR_CHIUSA), ("🟠", "In lavorazione", COLOR_LAVORAZIONE),
             ("📤", "Inviate", COLOR_INVIATA), ("❗", "Eccezioni", COLOR_ECCEZIONI)
         ]
-        self._badge_info_list = [] # Riempi dopo
-        self._badge_widgets_map = {} # Resetta mappa
+        self._badge_info_list = []
+        self._badge_widgets_map = {}
         for icon, text, color in badge_data:
             badge_tuple = self.create_badge(icon, text, color)
             self._badge_info_list.append(badge_tuple)
-            # Mappa il prefisso (es. "🟡 Annullate") alla tupla completa del badge
             prefix = badge_tuple[0].property("badgePrefix")
             if prefix:
-                 self._badge_widgets_map[prefix] = badge_tuple
-            badge_tuple[0].setVisible(False) # Nascondi inizialmente
+                self._badge_widgets_map[prefix] = badge_tuple
+            # Non aggiungere qui i badge al layout! Verranno aggiunti/rimossi
+            # dinamicamente dalla funzione update_badge_ui quando hanno valore > 0
+            # self.badge_layout.addWidget(badge_tuple[0]) <== RIMUOVI questa riga se c'era prima
+            badge_tuple[0].setVisible(False)  # Nascondi inizialmente
 
-        right_column_layout.addStretch()
+        ctrl_layout.addWidget(badge_group)  # Aggiunge il gruppo al layout principale
+
+        # Rimuoviamo le linee separatici orizzontali (ora i QGroupBox fanno la separazione)
+        # line1 = QtWidgets.QFrame(); ... ctrl_layout.addWidget(line1);
+        # line2 = QtWidgets.QFrame(); ... ctrl_layout.addWidget(line2);
+
+        right_column_layout.addStretch()  # Mantiene la firma in basso
+
+        # ... Label firma ...
+
+
+        # Connessioni segnali navigazione (invariate)
+        self.view.urlChanged.connect(self._update_navigation_buttons_state)
+        self.view.loadFinished.connect(self._update_navigation_buttons_state)
+        self._update_navigation_buttons_state()
 
         firma_h_layout = QtWidgets.QHBoxLayout(); firma_h_layout.setContentsMargins(0, 0, 0, 0)
         firma_h_layout.addStretch()
@@ -578,68 +812,100 @@ class App(QtWidgets.QWidget):
         options = QtWidgets.QFileDialog.Option.DontUseNativeDialog if sys.platform == 'linux' else QtWidgets.QFileDialog.Option(0)
         file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
             self, "Seleziona file Excel", "", "Excel Files (*.xlsx *.xls)", options=options )
-        if not file_path: logger.info("Nessun file selezionato, uscita."); return
+        if not file_path:
+            logger.info("Nessun file selezionato, uscita.");
+            # === OPZIONALE: Resetta l'etichetta anche qui ===
+            self.file_label.setText("Nessun file selezionato")
+            self.file_label.setToolTip("File Excel attualmente caricato per l'elaborazione")
+            # === FINE OPZIONALE ===
+            return
         self.current_file_path = file_path; logger.info(f"File selezionato: {self.current_file_path}")
+        # === AGGIUNGI QUESTA RIGA DOPO AVER ASSEGNATO self.current_file_path ===
+        self.file_label.setText(f"File: {os.path.basename(self.current_file_path)}")
+        self.file_label.setToolTip(self.current_file_path)  # Tooltip con percorso completo
 
-        codes = []; workbook = None; logger.debug("Inizio blocco lettura Excel")
+        # --- Modifica il blocco try...except...finally ---
+        codes = []
+        workbook = None  # Definisci workbook fuori dal try per accedervi nel finally se necessario
+        logger.debug("Inizio blocco lettura Excel")
         try:
             logger.info(f"Lettura file (openpyxl): {os.path.basename(file_path)}")
-            # Usiamo read_only=True, data_only=True per la lettura iniziale veloce
-            workbook = load_workbook(filename=file_path, read_only=True, data_only=True, keep_vba=False)
+            workbook = load_workbook(filename=file_path, read_only=True, data_only=True,
+                                     keep_vba=False)  # Apre il workbook
             if not workbook.sheetnames: raise ValueError("Il file Excel non contiene fogli.")
-            sheet = workbook.active; logger.debug(f"Foglio attivo: {sheet.title}")
+            sheet = workbook.active
+            logger.debug(f"Foglio attivo: {sheet.title}")
             if sheet.max_row <= 1: raise ValueError("Foglio vuoto o solo intestazione.")
 
-            header_row = sheet[1]; ricerca_col_idx = -1
+            header_row = sheet[1]
+            ricerca_col_idx = -1
             for idx, cell in enumerate(header_row):
                 if cell.value is not None and str(cell.value).strip().lower() == COL_RICERCA.lower():
-                    ricerca_col_idx = idx + 1; break # +1 perché openpyxl è 1-based per le colonne
+                    ricerca_col_idx = idx + 1
+                    break
             if ricerca_col_idx == -1: raise ValueError(f"Colonna '{COL_RICERCA}' non trovata.")
             logger.debug(f"Colonna ricerca '{COL_RICERCA}' trovata all'indice {ricerca_col_idx}")
 
             code_count = 0
-            # Leggi solo la colonna COL_RICERCA
             for row_cells in sheet.iter_rows(min_row=2, min_col=ricerca_col_idx, max_col=ricerca_col_idx):
-                cell = row_cells[0] # C'è solo una cella per riga in questo iteratore
+                cell = row_cells[0]
                 if cell.value is not None:
                     code = str(cell.value).strip()
-                    # Aggiungi controllo per ignorare valori vuoti o 'nan' comuni da pandas/excel
                     if code and code.lower() != 'nan':
-                        codes.append(code); code_count += 1
+                        codes.append(code)
+                        code_count += 1
             logger.debug(f"Estrazione completata ({code_count} codici)")
 
+            # === MODIFICA CHIAVE: Chiudi il workbook SUBITO dopo aver letto i dati ===
+            if workbook:
+                workbook.close()
+                logger.info(f"Workbook '{os.path.basename(file_path)}' chiuso dopo lettura.")
+                workbook = None  # Azzera la variabile per evitare doppia chiusura nel finally
+
+            # Controllo se sono stati trovati codici
             if not codes:
-                logger.warning("Nessun codice valido trovato nel file Excel."); self._set_status_message("⚠️ Nessun codice valido.", False)
-                QtWidgets.QMessageBox.information(self, "Nessun Codice", f"Nessun codice valido trovato nella colonna '{COL_RICERCA}' del file selezionato.")
-                # Chiudi il workbook qui se non ci sono codici
-                if workbook: workbook.close(); logger.debug("Workbook chiuso dopo lettura (nessun codice).")
-                return # Esce dalla funzione se non ci sono codici
+                logger.warning("Nessun codice valido trovato nel file Excel.")
+                self._set_status_message("⚠️ Nessun codice valido.", False)
+                QtWidgets.QMessageBox.information(self, "Nessun Codice",
+                                                  f"Nessun codice valido trovato nella colonna '{COL_RICERCA}' del file selezionato.")
+                self._reset_ui_after_processing()  # Assicura reset UI
+                return  # Esce dalla funzione
 
             logger.info(f"Trovati {len(codes)} codici da elaborare.")
+            # Ora possiamo procedere all'avvio del thread...
 
         except (InvalidFileException, FileNotFoundError, ValueError, Exception) as e:
+            # ... (gestione errori come prima) ...
             error_prefix = "Errore File Excel"
-            if isinstance(e, InvalidFileException): error_msg = "File Excel non valido o corrotto."
-            elif isinstance(e, FileNotFoundError): error_msg = f"File non trovato: {file_path}"; error_prefix="File Non Trovato"
-            elif isinstance(e, ValueError): error_msg = f"Errore contenuto file Excel: {e}"; error_prefix="Errore Contenuto"
-            else: error_msg = "Errore imprevisto durante la lettura del file Excel."; error_prefix="Errore Lettura"; logger.exception(error_msg)
+            if isinstance(e, InvalidFileException):
+                error_msg = "File Excel non valido o corrotto."
+            elif isinstance(e, FileNotFoundError):
+                error_msg = f"File non trovato: {file_path}"; error_prefix = "File Non Trovato"
+            elif isinstance(e, ValueError):
+                error_msg = f"Errore contenuto file Excel: {e}"; error_prefix = "Errore Contenuto"
+            else:
+                error_msg = "Errore imprevisto durante la lettura del file Excel."; error_prefix = "Errore Lettura"; logger.exception(
+                    error_msg)
 
             logger.error(f"{error_prefix}: {error_msg}")
             self._set_status_message(f"❌ {error_prefix}", False)
             QtWidgets.QMessageBox.critical(self, error_prefix, f"{error_msg}\nDettagli nel log.")
-            # Assicura chiusura anche in caso di errore durante la lettura
-            if workbook:
-                 try: workbook.close(); logger.debug("Workbook chiuso dopo errore lettura.")
-                 except Exception as close_err: logger.warning(f"Errore chiusura workbook dopo errore: {close_err}")
-            self._reset_ui_after_processing(); return # Resetta UI e esce
+            self._reset_ui_after_processing()  # Assicura reset UI anche in caso di errore
+            # Tentativo di chiusura nel blocco finally (più sicuro lì)
+            return  # Esce dalla funzione se c'è stato un errore di lettura
         finally:
-             # La chiusura avviene dentro il blocco try o nel blocco except
-             # Qui non è più necessario chiudere di nuovo se è già stato fatto.
-             # Si potrebbe aggiungere un controllo 'if workbook and workbook_is_open_flag:' ma diventa complesso.
-             # Essendo read_only, la chiusura è meno critica ma buona pratica.
-             # Assicuriamoci che venga chiuso in ogni caso sopra.
-             logger.debug("Blocco finally lettura Excel completato.")
-
+            # Assicura che il workbook venga chiuso ANCHE se si verifica un'eccezione
+            # DOPO l'apertura ma PRIMA della chiusura esplicita nel try.
+            # Se 'workbook' è None (perché già chiuso o mai aperto), non fa nulla.
+            if workbook:
+                try:
+                    workbook.close()
+                    logger.warning(
+                        f"Workbook '{os.path.basename(file_path)}' chiuso nel blocco finally (potrebbe indicare uscita anomala dal try).")
+                except Exception as close_err:
+                    logger.error(f"Errore chiusura workbook nel blocco finally: {close_err}")
+            logger.debug("Blocco finally lettura Excel completato.")
+        # --- Fine blocco try...except...finally modificato ---
 
         # --- Avvio Thread Worker (solo se ci sono codici) ---
         self.btn_start.setEnabled(False); self.btn_stop.setEnabled(True); self.btn_open.setEnabled(False)
@@ -1557,6 +1823,12 @@ class App(QtWidgets.QWidget):
         logger.debug("Resetting UI after processing...")
         self.btn_start.setEnabled(True); self.btn_stop.setEnabled(False); self.btn_open.setEnabled(True)
         self.spinner.stopAnimation() # Assicura che lo spinner sia fermo
+        # === AGGIUNGI QUESTA RIGA ===
+        self.file_label.setText("Nessun file selezionato")
+        self.file_label.setToolTip("File Excel attualmente caricato per l'elaborazione")
+        # === FINE AGGIUNTA ===
+
+
 
 
     def closeEvent(self, event: QtGui.QCloseEvent):
