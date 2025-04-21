@@ -16,6 +16,12 @@ ALL_CELLS_JS = '''(function() {
     return texts;
 })();''' # Script JS per ottenere tutte le celle
 
+# Ritardi e Controlli Fetch (in millisecondi)
+DELAY_AFTER_INPUT_JS = 100
+DELAY_AFTER_CLICK_JS = 1000
+DELAY_BETWEEN_RETRIES = 1000
+MAX_NULL_CHECKS = 5
+
 
 # Colori Interfaccia
 COLOR_STATUS_WAITING = "#e67e22" # Arancio

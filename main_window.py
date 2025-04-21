@@ -39,8 +39,8 @@ from config import (
     COL_RICERCA, COL_STATO, COL_PROTOCOLLO, COL_PROVVEDIMENTO,
     COL_DATA_PROVV, COL_CODICE_RIS, COL_NOTE, DEFAULT_IDX_STATO,
     DEFAULT_IDX_PROTOCOLLO, DEFAULT_IDX_PROVVEDIMENTO, DEFAULT_IDX_DATA_PROVV,
-    DEFAULT_IDX_CODICE_RIS, DEFAULT_IDX_NOTE,
-    URL_NSIS
+    DEFAULT_IDX_CODICE_RIS, DEFAULT_IDX_NOTE, DELAY_AFTER_INPUT_JS, DELAY_AFTER_CLICK_JS, DELAY_BETWEEN_RETRIES,
+    MAX_NULL_CHECKS, URL_NSIS
 )
 # Assicurati che questi import esistano o crea i file corrispondenti
 try:
@@ -55,12 +55,6 @@ except ImportError as e:
         def stopAnimation(self): self.hide()
     class WebEnginePage(QtWebEngineWidgets.QWebEnginePage): pass
     class JSBridge(QtCore.QObject): pass
-
-# Costanti per i ritardi (milliseconds)
-DELAY_AFTER_INPUT_JS = 150
-DELAY_AFTER_CLICK_JS = 1500
-DELAY_BETWEEN_RETRIES = 1500
-MAX_NULL_CHECKS = 5
 
 # ------------------- Worker Class (per QThread) -------------------
 # (Worker class rimane invariata rispetto alla versione precedente fornita)
