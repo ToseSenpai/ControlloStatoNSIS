@@ -443,11 +443,22 @@ class App(QtWidgets.QWidget):
         self.status.setStyleSheet("color: #1A1A1A;")
         ctrl_layout.addWidget(self.status)
 
-        self.log = QtWidgets.QTextEdit(); self.log.setReadOnly(True)
-        self.log.setPlaceholderText("Il log su questa interfaccia è disabilitato.\nConsultare la console o il file app_log.log.")
-        self.log.setStyleSheet(f""" QTextEdit {{ border: 1px solid #E0E0E0; border-radius: 4px; padding: 5px;
-                                              font-size: 10px; color: #888888; background-color: #FFFFFF; }} """)
-        ctrl_layout.addWidget(self.log)
+        self.log = QtWidgets.QTextEdit()  # Crea il widget
+        self.log.setReadOnly(True)  # Lo rende non modificabile dall'utente
+
+        # La riga del placeholder è stata rimossa, NON c'è più setPlaceholderText qui.
+
+        # Applica uno stile per il log (colore testo più scuro per leggibilità)
+        self.log.setStyleSheet(f""" QTextEdit {{
+                border: 1px solid #E0E0E0;
+                border-radius: 4px;
+                padding: 5px;
+                font-size: 10px;
+                color: #333333; /* Nero/Grigio scuro invece di grigio chiaro */
+                background-color: #FFFFFF;
+            }} """)
+        ctrl_layout.addWidget(self.log)  # Aggiunge il widget al layout
+
 
         ctrl_layout.addSpacing(10)
         line2 = QtWidgets.QFrame(); line2.setFrameShape(QtWidgets.QFrame.Shape.HLine); line2.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
@@ -624,7 +635,10 @@ class App(QtWidgets.QWidget):
         # --- Avvio Thread Worker (solo se ci sono codici) ---
         self.btn_start.setEnabled(False); self.btn_stop.setEnabled(True); self.btn_open.setEnabled(False)
         self._set_status_message("⏳ Avvio elaborazione...", True)
-        self.log.clear(); self._reset_badges(); self.progress.setValue(0); self.progress_label.setText("0%")
+        self.log.clear()
+        self._reset_badges()
+        self.progress.setValue(0)
+        self.progress_label.setText("0%")
 
         logger.debug("Inizio blocco creazione Thread/Worker")
         try:
@@ -670,8 +684,26 @@ class App(QtWidgets.QWidget):
     @QtCore.pyqtSlot(str)
     def update_status(self, message): self.status.setText(message)
 
+
     @QtCore.pyqtSlot(str)
-    def update_log(self, message): logger.info(message) # Logga tramite logger principale
+    def update_log(self, message):
+        """
+        Aggiorna sia il logger principale (console/file) che il widget
+        QTextEdit nell'interfaccia utente con il messaggio ricevuto.
+        Esegue lo scroll automatico del widget di log.
+        """
+        # Mantieni il logging standard su console e file
+        logger.info(message)
+
+        # Aggiunge il messaggio al widget QTextEdit nell'interfaccia
+        # Questo avviene nel thread principale della GUI, quindi è sicuro.
+        self.log.append(message)
+
+        # Assicura che l'ultima riga aggiunta sia visibile (scroll automatico)
+        # Utile per vedere sempre gli ultimi messaggi senza scrollare manualmente.
+        scrollbar = self.log.verticalScrollBar()
+        scrollbar.setValue(scrollbar.maximum())
+
 
     @QtCore.pyqtSlot(str, int)
     def update_badge_ui(self, badge_prefix, count):
