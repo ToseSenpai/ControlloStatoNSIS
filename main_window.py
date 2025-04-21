@@ -1006,16 +1006,49 @@ class App(QtWidgets.QWidget):
                     result_data = results_map[excel_code]
                     processed_keys.add(excel_code)
 
-                    for key, col_idx in col_indices.items():
-                        if key != 'Input Code' and col_idx != -1:
-                            value_to_write = result_data.get(key, '')
-                            cell_to_write = sheet.cell(row=row_idx, column=col_idx)
-                            cell_to_write.value = value_to_write
-                            cell_to_write.number_format = numbers.FORMAT_TEXT # Imposta come testo
-                            cell_to_write.alignment = Alignment(horizontal='left', vertical='top', wrap_text=True) # Allinea a sx, alto, wrap
+                    # --- INCOLLA QUESTO BLOCCO AGGIORNATO al posto del ciclo for key, col_idx ... originale ---
 
+                    # Itera sulle colonne da scrivere per la riga corrente
+                    for key, col_idx in col_indices.items():
+                        # Salta la colonna 'Input Code' (COL_RICERCA) perché quella serve solo per trovare la riga
+                        # e assicurati che l'indice della colonna sia stato trovato (non sia -1)
+                        if key != 'Input Code' and col_idx != -1:
+
+                            # --- Inizio Logica Aggiornata per Recupero e Scrittura Valore ---
+
+                            # Recupera il valore originale dai risultati raccolti per la chiave corrente (es. 'Stato', 'Note Usmaf')
+                            original_value = result_data.get(key,
+                                                             '')  # Usa '' come default se la chiave non esiste nei risultati
+
+                            # Inizializza il valore da scrivere nella cella con quello originale
+                            value_to_write = original_value
+
+                            # --- Logica Specifica per 'Note Usmaf' ---
+                            # Controlla se stiamo processando la colonna specifica 'Note Usmaf'
+                            # E se il valore originale recuperato è vuoto (o contiene solo spazi)
+                            if key == 'Note Usmaf' and not original_value.strip():
+                                # Se entrambe le condizioni sono vere, imposta il testo predefinito
+                                value_to_write = "NOTA USMAF"
+                            # --- Fine Logica Specifica ---
+
+                            # Ottieni l'oggetto cella dalla libreria openpyxl
+                            cell_to_write = sheet.cell(row=row_idx, column=col_idx)
+
+                            # Scrivi il valore finale (originale o il testo predefinito) nella cella
+                            cell_to_write.value = value_to_write
+
+                            # Applica formattazione alla cella per assicurare che sia testo
+                            # e per migliorare la leggibilità (allineamento e a capo automatico)
+                            cell_to_write.number_format = numbers.FORMAT_TEXT
+                            cell_to_write.alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)
+
+                            # --- Fine Logica Aggiornata per Recupero e Scrittura Valore ---
+
+                    # Incrementa il contatore delle righe aggiornate dopo aver processato tutte le colonne per questa riga
                     updated_rows += 1
-                    # logger.debug(f"Riga {row_idx}: Aggiornata per codice '{excel_code}'.") # Troppo verboso
+                    # logger.debug(f"Riga {row_idx}: Aggiornata per codice '{excel_code}'.") # Mantenuto commentato
+
+                # --- FINE BLOCCO AGGIORNATO ---
 
             logger.info(f"Scansione foglio '{sheet.title}' completata. Aggiornate {updated_rows} righe.")
 
