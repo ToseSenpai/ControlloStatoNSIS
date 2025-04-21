@@ -226,6 +226,21 @@ class App(QtWidgets.QWidget):
         self.setWindowTitle("Controllo Stato Richiesta - NSIS")
         self.setGeometry(QtCore.QRect(100, 100, 1200, 800))
 
+        # --- NUOVE RIGHE PER L'ICONA ---
+        try:
+            import os  # Aggiungi questo import se non già presente all'inizio del file
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            icon_path = os.path.join(script_dir, "icon.ico")  # Assicurati che il nome del file sia corretto
+            if os.path.exists(icon_path):
+                app_icon = QtGui.QIcon(icon_path)
+                self.setWindowIcon(app_icon)
+                logger.info(f"Icona applicazione caricata da: {icon_path}")
+            else:
+                logger.warning(f"File icona non trovato in: {icon_path}. Verrà usata l'icona di default.")
+        except Exception as e:
+            logger.error(f"Errore durante il caricamento dell'icona: {e}", exc_info=True)
+        # --- FINE NUOVE RIGHE ---
+
         self._badge_widgets = set()
         self._badge_widgets_map = {} # Inizializza mappa badge
         self.max_retries = MAX_RETRIES
