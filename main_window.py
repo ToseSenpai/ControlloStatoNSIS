@@ -405,8 +405,7 @@ class App(QtWidgets.QWidget):
 
         ctrl_container = QtWidgets.QFrame()
         ctrl_container.setObjectName("ControlContainer")
-        # Stile base per il contenitore esterno
-        # Stile per il contenitore esterno e i gruppi interni
+        # Stile aggiornato per il contenitore esterno e i gruppi interni
         ctrl_container.setStyleSheet("""
             /* Contenitore principale destro */
             QFrame#ControlContainer {
@@ -419,56 +418,100 @@ class App(QtWidgets.QWidget):
             /* Stile per i QGroupBox */
             QGroupBox {
                 font-weight: bold;
-                /* Togliamo il bordo e lo sfondo diretti qui per evitare conflitti, */
-                /* lo applichiamo indirettamente sotto se necessario o usiamo padding/margin */
-                border: none; /* Rimuovi il bordo base qui */
-                margin-top: 18px; /* Aumenta spazio sopra per titolo più distanziato */
-                padding-top: 10px; /* Aggiungi padding sopra DENTRO il box (sotto il titolo) */
-                /* background-color: #FFFFFF; /* OPZIONALE: prova con e senza sfondo bianco */
+                border: none; /* Nessun bordo */
+                padding-top: 12px;  /* <-- RIPRISTINATO PADDING */
+                margin-bottom: 10px; /* Spazio SOTTO ogni gruppo */
+                /* background-color: #FFFFFF; /* OPZIONALE: sfondo bianco interno */
             }
 
+            /* Il titolo standard verrà usato per i gruppi DOPO "Azioni" */
             QGroupBox::title {
                 subcontrol-origin: margin;
                 subcontrol-position: top left;
-                left: 8px; /* Sposta il titolo un po' a destra dal bordo */
-                padding: 0 4px; /* Padding orizzontale per il testo del titolo */
-                /* background-color: #f8f8f8; /* Sfondo titolo = sfondo parent */
-                background-color: #EAEAEA; /* Sfondo titolo leggermente diverso? */
+                left: 8px;
+                padding: 0 4px;
+                background-color: #EAEAEA;
                 border: 1px solid #D0D0D0;
                 border-radius: 4px;
-                color: #333333; /* Colore testo titolo scuro */
+                color: #333333;
             }
 
-            /* Selettore specifico per assicurare stile ai pulsanti DENTRO i QGroupBox */
-            /* QGroupBox QPushButton#ActionButton { */
-                /* NON aggiungere regole qui se vuoi che gli setStyleSheet diretti prevalgano */
-            /* } */
-
-            /* Stilizzazione base (fallback) per i pulsanti nel contenitore se necessario,
-               ma DARE PRIORITA' agli stili specifici applicati con setStyleSheet() */
-            /* QPushButton { ... } */
-
-            /* Stile per i QFrame usati come separatori (se decidessi di rimetterli) */
+            /* Stile per i QFrame separatori (se presenti) */
             QFrame[Shape="HLine"] {
                 border: none;
                 border-top: 1px solid #E0E0E0;
                 height: 1px;
-                margin: 5px 0px; /* Margine sopra/sotto */
+                margin: 5px 0px;
             }
 
-            /* Stile base per i QLabel nei gruppi (puoi specializzare se serve) */
+            /* Stile base per i QLabel nei gruppi */
             QGroupBox QLabel {
-                 background-color: transparent; /* Assicura sfondo trasparente */
-                 /* color: #1A1A1A; /* Colore di default già impostato altrove? */
+                 background-color: transparent;
                  padding: 1px;
             }
         """)
         ctrl_layout = QtWidgets.QVBoxLayout(ctrl_container)
-        ctrl_layout.setContentsMargins(5, 5, 5, 5)
-        ctrl_layout.setSpacing(15)  # Aumenta ancora un po' la spaziatura TRA i gruppi
+        # Margini interni del pannello di controllo
+        ctrl_layout.setContentsMargins(8, 8, 8, 8)  # Un po' più spazio intorno
+        ctrl_layout.setSpacing(10)  # Spazio tra gli elementi (Barra Titolo, Gruppi)
         right_column_layout.addWidget(ctrl_container)
 
-        # Definizioni degli stili dei pulsanti (invariati)
+        # --- Barra Titolo "Azioni" con Logo ---
+        # Layout orizzontale per contenere etichetta, spazio e logo
+        title_logo_layout = QtWidgets.QHBoxLayout()
+        title_logo_layout.setContentsMargins(0, 0, 5, 5)  # Margine destro e inferiore per spaziatura
+        title_logo_layout.setSpacing(6)
+
+        # Etichetta "Azioni" (simulata)
+        azioni_label = QtWidgets.QLabel("Azioni")
+        azioni_label.setStyleSheet("""
+            QLabel {
+                font-weight: bold;
+                color: #333333;
+                padding: 0 4px;
+                background-color: #EAEAEA;
+                border: 1px solid #D0D0D0;
+                border-radius: 4px;
+                margin-left: 8px; /* Come titolo QGroupBox originale */
+                min-height: 18px; /* Altezza minima */
+                max-height: 18px; /* Altezza massima */
+                /* Allineamento verticale testo al centro */
+                qproperty-alignment: 'AlignVCenter | AlignLeft';
+            }
+        """)
+        title_logo_layout.addWidget(azioni_label)  # Aggiungi l'etichetta a sinistra
+
+        # Spazio elastico per spingere il logo a destra
+        title_logo_layout.addStretch(1)
+
+        # Logica per aggiungere il logo (con altezza 20px)
+        try:
+            import os
+            logo_path = "ilovecustoms.png"
+            if os.path.exists(logo_path):
+                logo_pixmap = QtGui.QPixmap(logo_path)
+                if not logo_pixmap.isNull():
+                    scaled_logo = logo_pixmap.scaledToHeight(20,
+                                                             QtCore.Qt.TransformationMode.SmoothTransformation)  # Altezza 20px
+                    logo_label = QtWidgets.QLabel()
+                    logo_label.setPixmap(scaled_logo)
+                    logo_label.setAlignment(
+                        QtCore.Qt.AlignmentFlag.AlignRight | QtCore.Qt.AlignmentFlag.AlignVCenter)  # Allineato a destra, centrato verticalmente
+                    logo_label.setToolTip("Logo I Love Customs")
+                    title_logo_layout.addWidget(logo_label)  # Aggiungi il logo a destra
+                    logger.info(f"Logo '{logo_path}' aggiunto alla barra del titolo.")
+                else:
+                    logger.warning(f"Impossibile caricare QPixmap per logo: '{logo_path}'.")
+            else:
+                logger.warning(f"File logo non trovato: '{logo_path}'.")
+        except Exception as e_logo:
+            logger.error(f"Errore durante aggiunta logo alla barra titolo: {e_logo}", exc_info=True)
+
+        # Aggiungi la barra titolo+logo IN CIMA al layout del pannello di controllo
+        ctrl_layout.addLayout(title_logo_layout)
+        # --- Fine Barra Titolo ---
+
+        # Definizioni degli stili dei pulsanti (rimangono invariate)
         professional_button_style = """
             QPushButton { background-color: #F9F9F9; color: #1A1A1A; border: 1px solid #E0E0E0;
                           padding: 7px 12px; border-radius: 4px; font-weight: 600; outline: none;
@@ -494,23 +537,19 @@ class App(QtWidgets.QWidget):
             QPushButton:disabled { background-color: #FEF2F2; color: #FCA5A5; border-color: #FEE2E2; }
         """
 
-        # NON SERVE modificare altro codice per questa correzione.
-        # Assicurati solo che le chiamate successive come
-        # self.btn_open.setStyleSheet(professional_button_style)
-        # ...etc...
-        # siano ancora presenti dopo queste definizioni aggiornate.
-
-        # --- Gruppo Azioni ---
-        action_group = QtWidgets.QGroupBox("Azioni")
+        # --- Gruppo Azioni (SENZA titolo QGroupBox) ---
+        action_group = QtWidgets.QGroupBox()  # Nessun titolo qui!
         action_layout = QtWidgets.QVBoxLayout(action_group)
+        action_layout.setContentsMargins(5, 8, 5, 8)  # Margini interni del gruppo
         action_layout.setSpacing(6)  # Spaziatura tra i pulsanti
 
+        # Creazione e aggiunta pulsanti (codice invariato)
         self.btn_open = QtWidgets.QPushButton(" Apri NSIS")
         self.btn_open.setObjectName("ActionButton")
         if QTAWESOME_AVAILABLE: self.btn_open.setIcon(qta.icon('fa5s.external-link-alt', color=self.icon_color_open))
         self.btn_open.clicked.connect(self.open_nsis_url_test)
         self.btn_open.setStyleSheet(professional_button_style)
-        self.btn_open.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))  # Aggiunto cursore
+        self.btn_open.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         action_layout.addWidget(self.btn_open)
 
         self.btn_start = QtWidgets.QPushButton(" Seleziona e Avvia")
@@ -518,7 +557,7 @@ class App(QtWidgets.QWidget):
         if QTAWESOME_AVAILABLE: self.btn_start.setIcon(qta.icon('fa5s.play', color=self.icon_color_start))
         self.btn_start.clicked.connect(self.start_processing)
         self.btn_start.setStyleSheet(primary_button_style)
-        self.btn_start.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))  # Aggiunto cursore
+        self.btn_start.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         action_layout.addWidget(self.btn_start)
 
         self.btn_stop = QtWidgets.QPushButton(" Interrompi")
@@ -527,45 +566,30 @@ class App(QtWidgets.QWidget):
         self.btn_stop.clicked.connect(self.stop_processing);
         self.btn_stop.setEnabled(False)
         self.btn_stop.setStyleSheet(stop_button_style)
-        self.btn_stop.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))  # Aggiunto cursore
+        self.btn_stop.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         action_layout.addWidget(self.btn_stop)
 
-
-        # === NUOVO CODICE PER ETICHETTA FILE ===
-        action_layout.addSpacing(8) # Aggiunge uno spazio prima dell'etichetta
+        # Etichetta file (codice invariato)
+        action_layout.addSpacing(8)
         self.file_label = QtWidgets.QLabel("Nessun file selezionato")
-        self.file_label.setObjectName("FileLabel") # Per stile QSS
+        self.file_label.setObjectName("FileLabel")
         self.file_label.setStyleSheet("""
             QLabel#FileLabel {
-                color: #555555; /* Grigio scuro */
-                font-size: 9px;  /* Font piccolo */
-                /* text-align: center; -- Allineamento non funziona diretto in QLabel con QSS */
-                padding: 3px;
-                border: 1px solid #E8E8E8; /* Bordo leggero opzionale */
-                border-radius: 3px;
-                background-color: #FDFDFD; /* Sfondo molto chiaro */
-                min-height: 18px; /* Altezza minima per visibilità */
-                /* Word-wrap non disponibile direttamente in QLabel, useremo elisione */
+                color: #555555; font-size: 9px; padding: 3px;
+                border: 1px solid #E8E8E8; border-radius: 3px;
+                background-color: #FDFDFD; min-height: 18px;
             }
         """)
-        # Imposta elisione se il testo è troppo lungo
-        self.file_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter) # Centra il testo
-        self.file_label.setWordWrap(False) # Disabilita word-wrap (inutile per nomi file)
-        # Elide Middle taglia la parte centrale del nome file se troppo lungo: /path/.../nomefile.xlsx
-        font_metrics = QtGui.QFontMetrics(self.file_label.font())
-        # Nota: l'elisione con QSS/QLabel a volte è problematica. Qt gestisce automaticamente
-        # l'elisione (generalmente alla fine: ...) se il testo non entra. ElideMiddle è
-        # un tentativo, ma potrebbe non essere sempre perfetto a seconda dello spazio.
-        # La chiamata esplicita è tramite paintEvent, qui ci affidiamo a Qt di base.
-        # self.file_label.elideText = lambda text, width: font_metrics.elidedText(text, QtCore.Qt.TextElideMode.ElideMiddle, width)
-
+        self.file_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.file_label.setWordWrap(False)
         self.file_label.setToolTip("File Excel attualmente caricato per l'elaborazione")
         action_layout.addWidget(self.file_label)
-        # === FINE NUOVO CODICE ===
 
-        ctrl_layout.addWidget(action_group) # Riga esistente
+        # Aggiunge il gruppo Azioni al layout del pannello di controllo
+        ctrl_layout.addWidget(action_group)
 
-        ctrl_layout.addWidget(action_group)  # Aggiunge il gruppo al layout principale
+        # --- Gruppo Progresso Elaborazione ---
+        # (Il codice per questo gruppo e i successivi rimane invariato...)
 
         # --- Gruppo Progresso ---
         progress_group = QtWidgets.QGroupBox("Progresso Elaborazione")
