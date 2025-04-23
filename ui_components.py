@@ -7,80 +7,79 @@ class CustomProgressBar(QtWidgets.QProgressBar):
     """Barra di progresso personalizzata senza animazione aereo, con colori aggiornati."""
     def __init__(self, parent=None):
         super().__init__(parent)
-        # Stile base per rimuovere chunk di default e impostare testo (nascosto)
+        # Stile base per rimuovere chunk e impostare testo (nascosto)
         self.setStyleSheet("""
             QProgressBar {
-                border: 1px solid #E0E0E0; /* Bordo grigio chiaro (come pulsanti non primari) */
-                border-radius: 5px;
-                background-color: #F9F9F9; /* Sfondo grigio chiarissimo (come pulsanti non primari) */
+                border: none; /* Gestito dallo stylesheet genitore ora */
+                border-radius: 4px; /* Sarà sovrascritto da Luma */
+                background-color: transparent; /* Sfondo gestito da stylesheet genitore */
                 text-align: center;
-                color: #333333; /* Colore testo % (nascosto) */
+                color: transparent; /* Nasconde testo originale % */
             }
             QProgressBar::chunk {
-                 background-color: transparent; /* Deve essere trasparente, lo disegniamo noi */
+                 background-color: transparent; /* Chunk disegnato in paintEvent */
             }
         """)
         self.setTextVisible(False)
+        # Imposta colori di default (verranno usati se non sovrascritti)
+        self._chunkColor = QtGui.QColor("#6759FF") # Viola Luma primario di default
+        self._borderColor = QtGui.QColor("#E5E7EB") # Grigio Luma 30
+        self._backgroundColor = QtGui.QColor("#E5E7EB") # Grigio Luma 30 per sfondo
+
+    # === METODO AGGIUNTO ===
+    def setChunkColor(self, color: QtGui.QColor):
+        """Imposta il colore usato per la parte riempita (chunk)."""
+        if not hasattr(self, '_chunkColor') or self._chunkColor != color:
+            self._chunkColor = color
+            self.update() # Richiede un aggiornamento del disegno
+    # === FINE METODO AGGIUNTO ===
 
     def paintEvent(self, event: QtGui.QPaintEvent):
-        """Disegna la barra di progresso personalizzata con colori aggiornati."""
+        """Disegna la barra di progresso personalizzata."""
         painter = QtGui.QPainter(self)
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
 
+        opt = QtWidgets.QStyleOptionProgressBar()
+        self.initStyleOption(opt)
+        # Usiamo l'area disponibile del widget come rettangolo principale
+        # L'altezza è già definita dallo stylesheet generale (height: 8px)
         rect = self.rect()
-        # Raggio angoli coerente con i pulsanti
-        borderRadius = 4
 
-        # Colori aggiornati (ispirati al tema)
-        backgroundColor = QtGui.QColor("#F9F9F9") # Sfondo grigio chiarissimo
-        borderColor = QtGui.QColor("#E0E0E0") # Bordo grigio chiaro
-        chunkColor = QtGui.QColor("#0078D4") # Blu primario Fluent
+        # Determina il raggio - potremmo prenderlo dallo stile o fissarlo
+        # Usiamo 4px per far combaciare con altezza 8px e stile Luma
+        borderRadius = min(rect.width() / 2, rect.height() / 2, 4) # Calcola raggio
 
-        # Disegna sfondo arrotondato e bordo
-        painter.setBrush(QtGui.QBrush(backgroundColor))
-        painter.setPen(QtGui.QPen(borderColor, 1))
-        # Usiamo drawRoundedRect direttamente sul painter per sfondo/bordo
-        # adjusted serve per disegnare il bordo correttamente all'interno del rettangolo
-        painter.drawRoundedRect(QtCore.QRectF(rect).adjusted(0.5, 0.5, -0.5, -0.5), borderRadius, borderRadius)
+        # Disegna sfondo arrotondato (parte "vuota")
+        painter.setBrush(QtGui.QBrush(self._backgroundColor))
+        painter.setPen(QtCore.Qt.PenStyle.NoPen)
+        painter.drawRoundedRect(QtCore.QRectF(rect), borderRadius, borderRadius)
 
         # Disegna chunk (parte riempita)
         if self.maximum() > self.minimum():
             value_range = self.maximum() - self.minimum()
-            # Assicura che il valore sia nel range valido
             current_value = max(self.minimum(), min(self.value(), self.maximum()))
 
-            # Calcola la larghezza proporzionale del chunk
-            # Sottraiamo 2 per tenere conto del bordo (1px per lato)
-            barWidth = rect.width() - 2
-            chunkWidth = 0
             if value_range > 0 :
-                chunkWidth = int(((current_value - self.minimum()) / value_range) * barWidth)
+                chunkWidth = ((current_value - self.minimum()) / value_range) * rect.width()
+                if chunkWidth > 0:
+                    # Rettangolo per il chunk
+                    chunkRect = QtCore.QRectF(rect.left(), rect.top(), chunkWidth, rect.height())
 
-            if chunkWidth > 0:
-                # Rettangolo interno per il chunk, spostato di 1px dal bordo
-                chunkFillRect = QtCore.QRectF(rect.left() + 1, rect.top() + 1, chunkWidth, rect.height() - 2)
+                    # Crea un path di clipping arrotondato
+                    clipPath = QtGui.QPainterPath()
+                    # Usiamo un rettangolo leggermente interno per il clip per sicurezza? No, usiamo rect
+                    clipPath.addRoundedRect(QtCore.QRectF(rect), borderRadius, borderRadius)
+                    painter.setClipPath(clipPath) # Applica clipping
 
-                # Prepariamo un path arrotondato per clippare il disegno del chunk
-                # Questo assicura che il riempimento rispetti gli angoli arrotondati del bordo
-                clipPath = QtGui.QPainterPath()
-                # Usiamo un raggio leggermente inferiore per il clip interno
-                clipRect = QtCore.QRectF(rect.left() + 1, rect.top() + 1, rect.width() - 2, rect.height() - 2)
-                clipPath.addRoundedRect(clipRect, borderRadius -1 if borderRadius > 0 else 0, borderRadius -1 if borderRadius > 0 else 0)
+                    # Disegna il chunk effettivo (verrà clippato)
+                    painter.setBrush(QtGui.QBrush(self._chunkColor))
+                    painter.setPen(QtCore.Qt.PenStyle.NoPen)
+                    painter.drawRect(chunkRect)
 
-                painter.save() # Salva lo stato del painter (incluso il non-clipping)
-                # Applica il clipping path: tutto ciò che verrà disegnato ora sarà confinato dentro questo path
-                painter.setClipPath(clipPath)
+                    # Rimuovi il clip per eventuali disegni futuri (buona pratica)
+                    painter.setClipping(False)
 
-                # Disegna il chunk con il colore primario
-                painter.setBrush(QtGui.QBrush(chunkColor))
-                painter.setPen(QtCore.Qt.PenStyle.NoPen) # Nessun bordo per il chunk stesso
-                # Disegna un rettangolo semplice; sarà clippato automaticamente nella forma arrotondata
-                painter.drawRect(chunkFillRect)
-
-                painter.restore() # Rimuove il clipping e ripristina lo stato precedente del painter
-
-
-# --- NUOVO WIDGET SPINNER ---
+# --- Classe SpinnerWidget (invariata) ---
 class SpinnerWidget(QtWidgets.QWidget):
     """Widget che disegna uno spinner animato (arco rotante)."""
     def __init__(self, parent=None):
@@ -89,24 +88,21 @@ class SpinnerWidget(QtWidgets.QWidget):
         self._timer = QtCore.QTimer(self)
         self._timer.timeout.connect(self._updateAngle)
         self._timer.setInterval(20) # Aggiorna angolo ogni 20ms per fluidità
-        self._spinnerColor = QtGui.QColor("#0078D4") # Blu primario
-        self.setFixedSize(20, 20) # Imposta una dimensione fissa (puoi renderla configurabile)
+        self._spinnerColor = QtGui.QColor("#6759FF") # Colore Luma viola di default
+        self.setFixedSize(20, 20) # Dimensione predefinita
         self.hide() # Nascosto all'inizio
 
     def _updateAngle(self):
-        """Aggiorna l'angolo di rotazione e richiede un repaint."""
-        self._angle = (self._angle + 10) % 360 # Incrementa l'angolo
-        self.update() # Schedula un repaint
+        self._angle = (self._angle + 10) % 360
+        self.update() # Richiede repaint
 
     def startAnimation(self):
-        """Avvia l'animazione dello spinner."""
         if not self._timer.isActive():
             self._angle = 0
             self._timer.start()
             self.show()
 
     def stopAnimation(self):
-        """Ferma l'animazione dello spinner."""
         if self._timer.isActive():
             self._timer.stop()
             self.hide()
@@ -114,22 +110,27 @@ class SpinnerWidget(QtWidgets.QWidget):
     def setColor(self, color: QtGui.QColor):
         """Imposta il colore dello spinner."""
         self._spinnerColor = color
-        self.update()
+        if self.isVisible(): # Aggiorna subito solo se visibile
+            self.update()
 
     def paintEvent(self, event: QtGui.QPaintEvent):
         """Disegna l'arco rotante."""
-        if not self._timer.isActive(): # Non disegnare se non attivo
+        if not self._timer.isActive():
              return
 
         painter = QtGui.QPainter(self)
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
 
         rect = self.rect()
-        # Riduci leggermente il rettangolo per non toccare i bordi
-        drawRect = QtCore.QRectF(rect).adjusted(2, 2, -2, -2)
+        thickness = 2 # Spessore della linea dello spinner
+        # Riduci leggermente il rettangolo per il disegno per non toccare i bordi
+        drawRect = QtCore.QRectF(rect).adjusted(thickness, thickness, -thickness, -thickness)
+
+        if drawRect.width() <= 0 or drawRect.height() <= 0:
+            return # Non disegnare se l'area è troppo piccola
 
         pen = QtGui.QPen(self._spinnerColor)
-        pen.setWidth(2) # Spessore della linea dell'arco
+        pen.setWidth(thickness)
         pen.setCapStyle(QtCore.Qt.PenCapStyle.RoundCap) # Estremità arrotondate
         painter.setPen(pen)
 
@@ -137,7 +138,6 @@ class SpinnerWidget(QtWidgets.QWidget):
         # Gli angoli sono in 1/16 di grado.
         startAngle = self._angle * 16
         spanAngle = 120 * 16  # Disegna un arco di 120 gradi
-
         painter.drawArc(drawRect, startAngle, spanAngle)
 
     def sizeHint(self) -> QtCore.QSize:
