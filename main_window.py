@@ -547,13 +547,22 @@ class App(QtWidgets.QWidget):
         progress_layout_main.setSpacing(5)
         progress_bar_layout = QtWidgets.QHBoxLayout();
         progress_bar_layout.setSpacing(8)
+
+        # Colori DHL definiti per chiarezza
+        dhl_yellow_color = QtGui.QColor("#FFCC00")
+        dhl_red_color = QtGui.QColor("#D40511")
+
+        # Spinner (Impostato a ROSSO DHL)
         self.spinner = SpinnerWidget(self);
         self.spinner.setFixedSize(16, 16);
-        self.spinner.setColor(QtGui.QColor(COLOR_LUMA_PURPLE_500))  # Colore Luma per spinner
+        self.spinner.setColor(dhl_red_color)  # <--- MODIFICATO colore spinner
         progress_bar_layout.addWidget(self.spinner)
+
+        # Progress Bar (Impostata a GIALLO DHL)
         self.progress = CustomProgressBar()
-        self.progress.setChunkColor(QtGui.QColor(COLOR_LUMA_PURPLE_500))  # Colore Luma per progress
+        self.progress.setChunkColor(dhl_yellow_color)  # <--- MODIFICATO colore barra
         progress_bar_layout.addWidget(self.progress, stretch=1)
+
         self.progress_label = QtWidgets.QLabel("0%");
         self.progress_label.setMinimumWidth(35);
         self.progress_label.setStyleSheet(f"color: {COLOR_LUMA_GRAY_90}; font-weight: 600;");
