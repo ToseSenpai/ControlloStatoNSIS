@@ -1,101 +1,51 @@
 # main.py
-# Entry point for the application with Animated GIF SplashScreen and correct paths
+# Splash screen con testo disegnato SOTTO l'immagine ridimensionata.
 
 import sys
 import os
-import time # Solo per eventuali debug con pause
-import traceback # Per gestione errori dettagliata
+import time
+import traceback
 from PyQt6 import QtWidgets, QtGui, QtCore
 
-# --- INIZIO AnimatedSplashScreen Class ---
-class AnimatedSplashScreen(QtWidgets.QWidget):
-    """Una finestra splash semplice che mostra una GIF animata."""
-    def __init__(self, gif_path):
-        super().__init__()
-        self.setWindowFlags(
-            QtCore.Qt.WindowType.SplashScreen |
-            QtCore.Qt.WindowType.FramelessWindowHint |
-            QtCore.Qt.WindowType.WindowStaysOnTopHint
-        )
-        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
-        # self.setAttribute(QtCore.Qt.WidgetAttribute.WA_DeleteOnClose)
+# --- Importa la classe App e altre dipendenze ---
+# (codice invariato)
+try:
+    from main_window import App
+except ImportError as e:
+    print(f"ERRORE CRITICO: Impossibile importare 'App' da 'main_window': {e}", file=sys.stderr)
+    app_temp = QtWidgets.QApplication.instance()
+    if not app_temp: app_temp = QtWidgets.QApplication(sys.argv)
+    QtWidgets.QMessageBox.critical(None, "Errore Import", f"Modulo App non trovato:\n{e}")
+    sys.exit(1)
 
-        self.layout = QtWidgets.QVBoxLayout(self)
-        self.layout.setContentsMargins(0, 0, 0, 0)
-
-        self.label = QtWidgets.QLabel(self)
-        self.label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.layout.addWidget(self.label)
-
-        self.movie = QtGui.QMovie(gif_path)
-        if self.movie.isValid():
-            self.label.setMovie(self.movie)
-            self.movie.start()
-            print(f"INFO: GIF Splash '{os.path.basename(gif_path)}' caricata e avviata.")
-        else:
-            error_msg = f"Errore caricamento GIF: '{os.path.basename(gif_path)}'."
-            self.label.setText(error_msg); self.label.setStyleSheet("color: red; font-weight: bold;")
-            print(f"WARNING: {error_msg.replace('/n', ' ')}")
-
-    def center_on_screen(self):
-        """Centra la finestra splash sullo schermo primario."""
-        try:
-             primary_screen = QtWidgets.QApplication.primaryScreen()
-             if primary_screen:
-                 screen_geometry = primary_screen.availableGeometry()
-                 splash_geometry = self.frameGeometry()
-                 self.move( screen_geometry.left() + (screen_geometry.width() - splash_geometry.width()) // 2, screen_geometry.top() + (screen_geometry.height() - splash_geometry.height()) // 2 )
-             else: print("WARNING: Impossibile ottenere schermo primario.")
-        except Exception as e_screen: print(f"WARNING: Eccezione centramento splash: {e_screen}")
-
-    def closeEvent(self, event):
-        """Ferma il QMovie quando la finestra viene chiusa."""
-        if hasattr(self, 'movie') and self.movie and self.movie.state() == QtGui.QMovie.MovieState.Running:
-            self.movie.stop(); print("INFO: Animazione GIF splash fermata.")
-        event.accept()
-# --- FINE AnimatedSplashScreen Class ---
-
-# Inserisci QUESTA versione corretta della funzione load_fonts in main.py
-
+# --- Funzione per caricare i font ---
+# (codice invariato)
 def load_fonts():
-    """Carica il font Inter dal file TrueType Collection (TTC) usando metodi statici."""
-    font_dir = os.path.join(os.path.dirname(__file__), "fonts") # Cartella 'fonts'
-    main_family_name = "Arial" # Fallback predefinito
-    ttc_file = "Inter.ttc" # Nome del file TTC
+    font_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
+    main_family_name = "Arial"
+    ttc_file = "Inter.ttc"
     full_path = os.path.join(font_dir, ttc_file)
-
-    # Livello 1: Controlla se il file esiste
     if os.path.exists(full_path):
-        print(f"INFO: Tentativo di caricare il font TTC: {full_path}")
         font_id = QtGui.QFontDatabase.addApplicationFont(full_path)
-
-        # Livello 2: Controlla se il caricamento è riuscito (font_id valido)
         if font_id != -1:
-            # Livello 3: Controlla se sono state trovate famiglie
             families = QtGui.QFontDatabase.applicationFontFamilies(font_id)
             if families:
-                # Caricato con successo e trovate famiglie
-                main_family_name = families[0] # Usa la prima famiglia trovata
+                main_family_name = families[0]
                 print(f"INFO: Font TTC '{ttc_file}' caricato. Famiglia: '{main_family_name}'")
-            # Else corrispondente a 'if families:'
             else:
-                # Caricato (font_id valido) ma nessuna famiglia associata? Strano.
-                print(f"WARNING: Font TTC '{ttc_file}' caricato (ID: {font_id}) ma nessuna famiglia trovata.")
-                main_family_name = "Arial" # Torna al fallback per sicurezza
-        # Else corrispondente a 'if font_id != -1:' (Caricamento fallito)
+                print(f"WARNING: Font TTC '{ttc_file}' caricato ma nessuna famiglia trovata.")
+                main_family_name = "Arial"
         else:
-            print(f"WARNING: Impossibile caricare font TTC '{ttc_file}'. File non valido o corrotto? ID={font_id}.")
-            main_family_name = "Arial" # Fallback
-    # Else corrispondente a 'if os.path.exists(full_path):' (File non trovato)
+            print(f"WARNING: Impossibile caricare font TTC '{ttc_file}'.")
+            main_family_name = "Arial"
     else:
         print(f"WARNING: File font TTC non trovato: '{ttc_file}' in '{font_dir}'")
-        main_family_name = "Arial" # Fallback
-
-    # Stampa finale della famiglia che verrà usata
+        main_family_name = "Arial"
     print(f"INFO: Famiglia font selezionata per UI: '{main_family_name}'")
     return main_family_name
 
 # --- Verifica preliminare moduli WebEngine ---
+# (codice invariato)
 try:
     from PyQt6 import QtWebEngineWidgets, QtWebEngineCore, QtWebChannel
     _ = QtWebEngineWidgets.QWebEngineView; _ = QtWebEngineCore.QWebEnginePage; _ = QtWebChannel.QWebChannel
@@ -105,82 +55,148 @@ except ImportError:
     app_temp = QtWidgets.QApplication.instance();
     if not app_temp: app_temp = QtWidgets.QApplication(sys.argv)
     QtWidgets.QMessageBox.critical(None,"Errore Moduli","PyQt6-WebEngine mancante."); sys.exit(1)
-# --- Fine Verifica WebEngine ---
 
-# --- Importa la classe App ---
-try:
-    from main_window import App
-except ImportError as e:
-    print(f"ERRORE CRITICO: Impossibile importare 'App' da 'main_window': {e}", file=sys.stderr)
-    app_temp = QtWidgets.QApplication.instance();
-    if not app_temp: app_temp = QtWidgets.QApplication(sys.argv)
-    QtWidgets.QMessageBox.critical(None,"Errore Import", f"Modulo App non trovato:\n{e}"); sys.exit(1)
-# --- Fine Import App ---
 
 # --- Esecuzione Applicazione ---
 if __name__ == '__main__':
 
-    # Imposta attributi per rendering alta DPI
-    if hasattr(QtCore.Qt.ApplicationAttribute, 'AA_EnableHighDpiScaling'): QtWidgets.QApplication.setAttribute(QtCore.Qt.ApplicationAttribute.AA_EnableHighDpiScaling, True); print("INFO: Abilitato AA_EnableHighDpiScaling.")
-    if hasattr(QtCore.Qt.ApplicationAttribute, 'AA_UseHighDpiPixmaps'): QtWidgets.QApplication.setAttribute(QtCore.Qt.ApplicationAttribute.AA_UseHighDpiPixmaps, True); print("INFO: Abilitato AA_UseHighDpiPixmaps.")
+    # Imposta attributi DPI
+    # (codice invariato)
+    if hasattr(QtCore.Qt.ApplicationAttribute, 'AA_EnableHighDpiScaling'):
+        QtWidgets.QApplication.setAttribute(QtCore.Qt.ApplicationAttribute.AA_EnableHighDpiScaling, True)
+        print("INFO: Abilitato AA_EnableHighDpiScaling.")
+    if hasattr(QtCore.Qt.ApplicationAttribute, 'AA_UseHighDpiPixmaps'):
+        QtWidgets.QApplication.setAttribute(QtCore.Qt.ApplicationAttribute.AA_UseHighDpiPixmaps, True)
+        print("INFO: Abilitato AA_UseHighDpiPixmaps.")
 
     # Crea QApplication
     app = QtWidgets.QApplication(sys.argv)
 
-    # --- Mostra lo Splash Screen ANIMATO ---
+    # --- Mostra lo Splash Screen con Testo Disegnato Sotto ---
     splash = None
+    final_pixmap = None # La pixmap combinata (immagine + testo)
     try:
-        # Percorso GIF corretto (nella stessa cartella di main.py)
-        gif_filename = "splash.gif"
-        gif_path = gif_filename # Percorso relativo semplice
+        image_filename = "splash.png"
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        image_path = os.path.join(script_dir, image_filename)
 
-        if os.path.exists(gif_path):
-            splash = AnimatedSplashScreen(gif_path) # Passa percorso corretto
-            if splash.movie.isValid():
-                 splash.adjustSize()
-                 splash.center_on_screen()
-                 splash.show()
-                 app.processEvents() # Forza disegno iniziale
-                 print("INFO: Animated GIF Splash mostrato.")
+        print(f"INFO: Checking for splash image at: {image_path}")
+
+        if os.path.exists(image_path):
+            original_pixmap = QtGui.QPixmap(image_path)
+
+            if not original_pixmap.isNull():
+                # 1. Ridimensiona l'immagine come prima
+                original_size = original_pixmap.size()
+                new_width = int(original_size.width() * 0.5)
+                new_height = int(original_size.height() * 0.5)
+                scaled_pixmap = original_pixmap.scaled(
+                    new_width, new_height,
+                    QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+                    QtCore.Qt.TransformationMode.SmoothTransformation
+                )
+                print(f"INFO: Base image resized to {scaled_pixmap.width()}x{scaled_pixmap.height()}")
+
+                # --- Disegna Testo sul Pixmap ---
+                # 2. Definisci parametri testo
+                text_to_draw = "Caricamento applicazione..."
+                text_color = QtGui.QColor("white")
+                text_padding_bottom = 5  # Spazio tra immagine e testo
+                text_area_height = 30  # Altezza area dedicata al testo
+                text_font = QtGui.QFont("Arial", 10) # Imposta font e dimensione
+
+                # 3. Crea il pixmap finale più alto
+                final_height = scaled_pixmap.height() + text_area_height
+                final_pixmap = QtGui.QPixmap(scaled_pixmap.width(), final_height)
+                # Riempi con sfondo trasparente (importante!)
+                final_pixmap.fill(QtCore.Qt.GlobalColor.transparent)
+
+                # 4. Prepara il QPainter
+                painter = QtGui.QPainter(final_pixmap)
+                painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+                painter.setRenderHint(QtGui.QPainter.RenderHint.TextAntialiasing)
+
+                # 5. Disegna l'immagine ridimensionata in cima
+                painter.drawPixmap(0, 0, scaled_pixmap)
+
+                # 6. Imposta font e colore per il testo
+                painter.setFont(text_font)
+                painter.setPen(text_color)
+
+                # 7. Definisci il rettangolo per il testo (sotto l'immagine)
+                text_rect = QtCore.QRect(
+                    0,
+                    scaled_pixmap.height() + text_padding_bottom, # Y iniziale sotto l'immagine + padding
+                    final_pixmap.width(),                        # Larghezza completa
+                    text_area_height - text_padding_bottom       # Altezza rimanente
+                )
+
+                # 8. Disegna il testo centrato nel rettangolo
+                painter.drawText(text_rect, QtCore.Qt.AlignmentFlag.AlignCenter, text_to_draw)
+
+                # 9. Finalizza il disegno
+                painter.end()
+                print(f"INFO: Text drawn onto pixmap. Final size: {final_pixmap.width()}x{final_pixmap.height()}")
+                # --- Fine Disegno Testo ---
+
+                # 10. Crea lo QSplashScreen usando il Pixmap FINALE (con testo)
+                splash = QtWidgets.QSplashScreen(final_pixmap)
+
+                # (Opzionale) Maschera per trasparenza basata sul Pixmap FINALE
+                # splash.setMask(final_pixmap.mask())
+
+                # !!! RIMUOVI splash.showMessage() !!!
+                # splash.showMessage(...) # Questa riga NON serve più
+
+                # Mostra lo splash combinato
+                splash.show()
+                print("INFO: Combined (image+text) QSplashScreen shown.")
+                app.processEvents()
             else:
-                 print(f"WARNING: GIF in '{gif_path}' non valida, splash non mostrato.")
-                 splash = None # Resetta splash se gif non valida
+                print(f"WARNING: Failed to load QPixmap from '{image_path}'.")
         else:
-            print(f"WARNING: File GIF splash non trovato in: '{gif_path}'.")
+            print(f"WARNING: Static splash image file not found at: '{image_path}'.")
 
     except Exception as e_splash:
-        print(f"WARNING: Errore creazione AnimatedSplashScreen: {e_splash}")
+        print(f"WARNING: Error creating/drawing static QSplashScreen: {e_splash}")
+        traceback.print_exc()
         splash = None
-    # --- Fine Splash Screen Animato ---
+        final_pixmap = None # Assicura sia None
 
     # --- Carica Font e Crea Finestra Principale ---
+    # (Il resto del codice rimane invariato, userà la variabile 'splash' correttamente)
     try:
-        # Carica fonts
         ui_font_family_name = load_fonts()
-
-        # Crea finestra principale
+        print("INFO: Creating main application window...")
         window = App(ui_font_family=ui_font_family_name)
-
-        # === MOSTRA LA FINESTRA PRINCIPALE PRIMA DI CHIUDERE LO SPLASH ===
+        print("INFO: Main window created.")
         window.show()
-        app.processEvents() # Aiuta a far partire il rendering
+        print("INFO: Main window shown.")
 
-        # === ORA CHIUDI LO SPLASH SCREEN ===
         if splash:
-            splash.close() # Chiude la finestra dello splash
-            print("INFO: Animated Splash chiuso.")
-            # Il timer singleShot non è più necessario qui perché la chiusura avviene
-            # dopo che la finestra principale è visibile.
+             print("INFO: Applying brief delay for splash visibility...")
+             REQUIRED_SPLASH_DURATION_SEC = 0.5
+             time.sleep(REQUIRED_SPLASH_DURATION_SEC)
+             print("INFO: Delay finished.")
 
-        # Avvia il ciclo eventi principale
-        sys.exit(app.exec())
+        if splash:
+            print("INFO: Closing combined splash screen...")
+            splash.finish(window)
+            print("INFO: Combined splash screen closed.")
+        else:
+             app.processEvents()
+
+        print("INFO: Starting application event loop...")
+        exit_code = app.exec()
+        print(f"INFO: Application finished with exit code {exit_code}.")
+        sys.exit(exit_code)
 
     except Exception as e_main:
-        # Cattura errori critici durante avvio o esecuzione
         print(f"ERRORE CRITICO nell'applicazione: {e_main}", file=sys.stderr)
-        traceback.print_exc() # Stampa traceback completo
-        if splash and not splash.isHidden(): splash.close() # Chiudi splash se errore
-        try: # Mostra dialogo di errore
-            error_dialog=QtWidgets.QMessageBox(); error_dialog.setIcon(QtWidgets.QMessageBox.Icon.Critical); error_dialog.setWindowTitle("Errore Applicazione"); error_dialog.setText(f"Errore avvio:\n\n{e_main}"); error_dialog.setDetailedText(traceback.format_exc()); error_dialog.exec()
-        except: pass
-        sys.exit(1) # Esci con errore
+        traceback.print_exc()
+        if splash and not splash.isHidden():
+            splash.close()
+        try:
+            error_dialog = QtWidgets.QMessageBox(); error_dialog.setIcon(QtWidgets.QMessageBox.Icon.Critical); error_dialog.setWindowTitle("Errore Applicazione"); error_dialog.setText(f"Si è verificato un errore critico:\n\n{e_main}"); error_dialog.setDetailedText(traceback.format_exc()); error_dialog.exec()
+        except Exception as e_dialog: print(f"Errore nel mostrare il dialogo di errore: {e_dialog}")
+        sys.exit(1)
