@@ -2,3 +2,4 @@ PyQt6
 PyQt6-WebEngine
 openpyxl
 qtawesome
+pyinstaller
