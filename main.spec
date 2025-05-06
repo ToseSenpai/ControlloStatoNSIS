@@ -1,12 +1,13 @@
 # -*- mode: python ; coding: utf-8 -*-
-"""PyInstaller spec — build **ONEDIR** con splash nativo e font personalizzati
+"""
+PyInstaller spec — ONEDIR build con splash, console, fonts, icona e immagine extra
 
-✔️  Onedir (dist/ControlloStatoNSIS)
-✔️  Splash.png mostrato (GUI, no console)
-✔️  DLL Tcl/Tk incluse per lo splash
-✔️  Cartella *fonts* copiata in _internal/fonts così Qt trova Inter.ttc
-
-Per il debug (log in console) metti `console=True` e/o `debug=True` nell’oggetto EXE.
+✔️  Cartella dist/ControlloStatoNSIS (modalità onedir)
+✔️  Splash.png mostrato dal bootloader
+✔️  Console visibile all’avvio (metti console=False per GUI pura)
+✔️  Font personalizzati copiati in _internal/fonts
+✔️  Icona dell’app incorporata (icon.ico)
+✔️  Immagine aggiuntiva ilovecustoms.png nella root di runtime
 """
 
 from pathlib import Path
@@ -14,27 +15,33 @@ from PyInstaller.utils.hooks import collect_dynamic_libs
 import os
 
 # -----------------------------------------------------------------------------
-# Percorsi principali
+# Percorsi progetto
 # -----------------------------------------------------------------------------
 root = Path(__file__).parent.resolve() if "__file__" in globals() else Path(os.getcwd())
+
 main_script  = root / "main.py"
 splash_image = root / "splash.png"
-fonts_dir    = root / "fonts"          # ↙ contiene Inter.ttc e altri font
-icon_file    = None  # es: root / "app.ico" se serve un'icona
+fonts_dir    = root / "fonts"           # cartella con .ttf/.ttc
+icon_file    = root / "icon.ico"        # icona Windows
+extra_img    = root / "ilovecustoms.png"# immagine extra
 
 # -----------------------------------------------------------------------------
-# Risorse extra (splash + fonts)
+# File dati da includere
 # -----------------------------------------------------------------------------
 
-datas = [(splash_image, ".")]
+datas = [
+    (splash_image, "."),  # splash
+    (extra_img,   "."),   # immagine extra
+]
 
-# Copia tutta la cartella "fonts" dentro _internal/fonts nel runtime,
-# così Qt6 troverà Inter.ttc senza warning.
+# Copia ogni file font → _internal/fonts
 if fonts_dir.exists():
-    datas.append((str(fonts_dir), "_internal/fonts"))
+    for font_file in fonts_dir.iterdir():
+        if font_file.is_file():
+            datas.append((str(font_file), "fonts"))
 
 # -----------------------------------------------------------------------------
-# DLL Tcl/Tk indispensabili per il bootloader splash
+# DLL necessarie (Tcl/Tk per splash)
 # -----------------------------------------------------------------------------
 
 binaries = collect_dynamic_libs("tkinter")
@@ -60,26 +67,26 @@ a = Analysis(
 pyz = PYZ(a.pure, a.zipped_data, cipher=None)
 
 # -----------------------------------------------------------------------------
-# Executable (stub) – ONEDIR, GUI, splash
+# Executable (stub) – onedir
 # -----------------------------------------------------------------------------
 
 exe = EXE(
     pyz,
     a.scripts,
-    [],                 # i binari veri sono raccolti da COLLECT
+    [],                 # binari veri aggiunti da COLLECT
     exclude_binaries=True,
     name="ControlloStatoNSIS",
-    debug=False,        # ➜ True se vuoi log
+    debug=False,        # True per log bootloader
     bootloader_ignore_signals=False,
     strip=False,
     upx=False,
-    console=False,      # GUI subsystem
-    icon=str(icon_file) if icon_file else None,
+    console=True,       # console aperta (nascondila via hide_console())
+    icon=str(icon_file) if icon_file.exists() else None,
     splash=str(splash_image),
 )
 
 # -----------------------------------------------------------------------------
-# COLLECT – crea la cartella dist/ControlloStatoNSIS (build ONEDIR)
+# COLLECT – crea dist/ControlloStatoNSIS
 # -----------------------------------------------------------------------------
 
 coll = COLLECT(
