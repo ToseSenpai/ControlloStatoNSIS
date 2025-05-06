@@ -653,7 +653,7 @@ class App(QtWidgets.QWidget):
         firma_h_layout = QtWidgets.QHBoxLayout();
         firma_h_layout.setContentsMargins(0, 5, 5, 0)
         firma_h_layout.addStretch()
-        self.firma_label = QtWidgets.QLabel("<i>©2025 ST, version 1.5-stable</i>")  # Aggiorna versione
+        self.firma_label = QtWidgets.QLabel("<i>©2025 ST, version 1.6-stablelight, may-2025</i>")  # Aggiorna versione
         self.firma_label.setStyleSheet(
             f"QLabel {{ color: {COLOR_LUMA_GRAY_50}; font-size: 9px; background-color: transparent; }}")
         self.firma_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight | QtCore.Qt.AlignmentFlag.AlignVCenter)

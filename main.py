@@ -1,27 +1,23 @@
 # main.py
-# Punto di ingresso dell'applicazione con splash screen ottimizzato.
-# MODIFICATO: Rimosso time.sleep e semplificato caricamento splash.
+# Punto di ingresso ottimizzato per usare lo splash nativo di PyInstaller.
+# RIMOSSO: Tutta la logica per QSplashScreen.
 
 import sys
 import os
-# 'time' non è più necessario qui se non per altre ragioni
 import traceback
 from PyQt6 import QtWidgets, QtGui, QtCore
 
-# --- Importa la classe App (presumibilmente già modificata con import differiti) ---
+# Importa la classe App (già ottimizzata con import differiti)
 try:
-    # Assicurati che main_window contenga la classe App aggiornata
     from main_window import App
 except ImportError as e:
     print(f"ERRORE CRITICO: Impossibile importare 'App' da 'main_window': {e}", file=sys.stderr)
-    # Tenta di mostrare un messaggio di errore anche se l'app principale fallisce
     app_temp = QtWidgets.QApplication.instance()
     if not app_temp: app_temp = QtWidgets.QApplication(sys.argv)
     QtWidgets.QMessageBox.critical(None, "Errore Import", f"Modulo App non trovato o errato:\n{e}\n\nControllare main_window.py.")
     sys.exit(1)
 
-# --- Funzione per caricare i font ---
-# (Questa funzione rimane invariata, assumendo che tu voglia ancora caricare i font)
+# Funzione per caricare i font (invariata)
 def load_fonts():
     font_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts")
     main_family_name = "Arial" # Fallback font
@@ -43,8 +39,7 @@ def load_fonts():
     print(f"INFO: Famiglia font selezionata per UI: '{main_family_name}'")
     return main_family_name
 
-# --- Verifica preliminare moduli WebEngine ---
-# (Questo controllo è importante e rimane invariato)
+# Verifica preliminare moduli WebEngine (invariata)
 try:
     from PyQt6 import QtWebEngineWidgets, QtWebEngineCore, QtWebChannel
     _ = QtWebEngineWidgets.QWebEngineView
@@ -58,7 +53,6 @@ except ImportError:
     if not app_temp: app_temp = QtWidgets.QApplication(sys.argv)
     QtWidgets.QMessageBox.critical(None, "Errore Moduli", "PyQt6-WebEngine mancante.\nL'applicazione non può avviarsi.")
     sys.exit(1)
-
 
 # --- Esecuzione Applicazione ---
 if __name__ == '__main__':
@@ -74,56 +68,20 @@ if __name__ == '__main__':
     # Crea QApplication
     app = QtWidgets.QApplication(sys.argv)
 
-    # --- Mostra lo Splash Screen SEMPLIFICATO (da immagine statica) ---
-    splash = None
-    try:
-        # Assicurati che questo nome file esista e sia nel .spec
-        # Potrebbe essere 'splash.png' o 'splash.gif' a seconda di cosa hai scelto
-        image_filename = "splash.png"
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        image_path = os.path.join(script_dir, image_filename)
-
-        print(f"INFO: Controllo splash image: {image_path}")
-
-        if os.path.exists(image_path):
-            pixmap = QtGui.QPixmap(image_path) # Carica direttamente
-
-            if not pixmap.isNull():
-                splash = QtWidgets.QSplashScreen(pixmap)
-                # splash.setMask(pixmap.mask()) # Opzionale per trasparenza
-                splash.show()
-                print(f"INFO: Splash screen statico ('{image_filename}') mostrato.")
-                app.processEvents() # Permetti allo splash di apparire subito
-            else:
-                print(f"WARNING: Impossibile caricare QPixmap da '{image_path}'.")
-        else:
-            print(f"WARNING: File immagine splash statico non trovato: '{image_path}'.")
-
-    except Exception as e_splash:
-        print(f"WARNING: Errore durante la creazione dello splash screen: {e_splash}")
-        traceback.print_exc()
-        splash = None
-    # --- Fine Blocco Splash Semplificato ---
+    # --- NESSUN CODICE QSplashScreen QUI ---
+    # Lo splash nativo viene mostrato dal bootloader di PyInstaller
 
     # --- Carica Font e Crea Finestra Principale ---
     try:
         ui_font_family_name = load_fonts()
         print("INFO: Creazione finestra principale applicazione...")
-        window = App(ui_font_family=ui_font_family_name) # Usa la classe App da main_window.py
+        # Crea l'istanza della classe App (da main_window.py)
+        window = App(ui_font_family=ui_font_family_name)
         print("INFO: Finestra principale creata.")
+
+        # Mostra la finestra. Lo splash nativo scomparirà automaticamente.
         window.show()
         print("INFO: Finestra principale mostrata.")
-
-        # NESSUN time.sleep() qui!
-
-        # Chiudi lo splash screen non appena la finestra principale è pronta
-        if splash:
-            print("INFO: Chiusura splash screen...")
-            splash.finish(window)
-            print("INFO: Splash screen chiuso.")
-        else:
-             # Se non c'era splash, processa eventi iniziali comunque
-             app.processEvents()
 
         print("INFO: Avvio event loop applicazione...")
         exit_code = app.exec()
@@ -133,11 +91,9 @@ if __name__ == '__main__':
     except Exception as e_main:
         print(f"ERRORE CRITICO nell'applicazione principale: {e_main}", file=sys.stderr)
         traceback.print_exc()
-        # Tenta di chiudere lo splash se ancora aperto
-        if splash and not splash.isHidden():
-            splash.close()
-        # Tenta di mostrare un dialogo di errore
+        # Nessun QSplashScreen Python da chiudere
         try:
+            # Mostra un messaggio di errore all'utente
             error_dialog = QtWidgets.QMessageBox()
             error_dialog.setIcon(QtWidgets.QMessageBox.Icon.Critical)
             error_dialog.setWindowTitle("Errore Applicazione")

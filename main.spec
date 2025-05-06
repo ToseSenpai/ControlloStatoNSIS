@@ -1,80 +1,93 @@
-# File: main.spec (Versione Aggiornata)
-
 # -*- mode: python ; coding: utf-8 -*-
+"""PyInstaller spec — build **ONEDIR** con splash nativo e font personalizzati
 
-# Lista dei file di dati - Percorsi relativi a questo file .spec
-# AGGIORNATO: Usa 'splash.png' invece di 'splash.gif'
-datas_list = [
-    ('fonts', 'fonts'),               # Sorgente 'fonts' -> Destinazione 'fonts'
-    ('ilovecustoms.png', '.'),        # Sorgente 'ilovecustoms.png' -> Destinazione '.' (root)
-    ('icon.ico', '.'),                # Sorgente 'icon.ico' -> Destinazione '.' (root)
-    ('splash.png', '.')               # <--- MODIFICATO: Usa il nome file corretto
-]
+✔️  Onedir (dist/ControlloStatoNSIS)
+✔️  Splash.png mostrato (GUI, no console)
+✔️  DLL Tcl/Tk incluse per lo splash
+✔️  Cartella *fonts* copiata in _internal/fonts così Qt trova Inter.ttc
 
-# Import nascosti
-# (Nessuna modifica necessaria qui rispetto alla versione precedente)
-hidden_imports_list = [
-    'PyQt6.QtSvg',
-    'PyQt6.QtWebEngineCore',
-    'PyQt6.QtWebEngineWidgets',
-    'PyQt6.QtPrintSupport',
-    'qtawesome',
-    'openpyxl',
-]
+Per il debug (log in console) metti `console=True` e/o `debug=True` nell’oggetto EXE.
+"""
 
-# Analisi
-# (Nessuna modifica necessaria qui rispetto alla versione precedente)
+from pathlib import Path
+from PyInstaller.utils.hooks import collect_dynamic_libs
+import os
+
+# -----------------------------------------------------------------------------
+# Percorsi principali
+# -----------------------------------------------------------------------------
+root = Path(__file__).parent.resolve() if "__file__" in globals() else Path(os.getcwd())
+main_script  = root / "main.py"
+splash_image = root / "splash.png"
+fonts_dir    = root / "fonts"          # ↙ contiene Inter.ttc e altri font
+icon_file    = None  # es: root / "app.ico" se serve un'icona
+
+# -----------------------------------------------------------------------------
+# Risorse extra (splash + fonts)
+# -----------------------------------------------------------------------------
+
+datas = [(splash_image, ".")]
+
+# Copia tutta la cartella "fonts" dentro _internal/fonts nel runtime,
+# così Qt6 troverà Inter.ttc senza warning.
+if fonts_dir.exists():
+    datas.append((str(fonts_dir), "_internal/fonts"))
+
+# -----------------------------------------------------------------------------
+# DLL Tcl/Tk indispensabili per il bootloader splash
+# -----------------------------------------------------------------------------
+
+binaries = collect_dynamic_libs("tkinter")
+
+# -----------------------------------------------------------------------------
+# Analysis
+# -----------------------------------------------------------------------------
+
 a = Analysis(
-    ['main.py'], # Assicurati che usi il file main.py aggiornato
-    pathex=[],
-    binaries=[],
-    datas=datas_list,                 # Usa la lista dati aggiornata
-    hiddenimports=hidden_imports_list,
+    [str(main_script)],
+    pathex=[str(root)],
+    binaries=binaries,
+    datas=datas,
+    hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],                      # Lasciato vuoto per ora
+    excludes=[],
     cipher=None,
-    noarchive=False
+    noarchive=False,
 )
 
-# PYZ
-# (Nessuna modifica necessaria qui rispetto alla versione precedente)
-pyz = PYZ(a.pure)
+pyz = PYZ(a.pure, a.zipped_data, cipher=None)
 
-# Eseguibile
-# (Nessuna modifica necessaria qui rispetto alla versione precedente)
+# -----------------------------------------------------------------------------
+# Executable (stub) – ONEDIR, GUI, splash
+# -----------------------------------------------------------------------------
+
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries,
-    a.datas,                          # Passa i dati aggiornati
-    [],
-    name='ControlloStatoNSIS',        # Nome dell'eseguibile
-    debug=False,
+    [],                 # i binari veri sono raccolti da COLLECT
+    exclude_binaries=True,
+    name="ControlloStatoNSIS",
+    debug=False,        # ➜ True se vuoi log
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,                         # Compressione UPX attiva
-    upx_exclude=[],
-    runtime_tmpdir=None,
-    console=False,                    # Applicazione GUI (no console)
-    disable_windowed_traceback=False,
-    argv_emulation=False,
-    target_arch=None,
-    codesign_identity=None,
-    entitlements_file=None,
-    icon='icon.ico'                   # Icona dell'eseguibile
+    upx=False,
+    console=False,      # GUI subsystem
+    icon=str(icon_file) if icon_file else None,
+    splash=str(splash_image),
 )
 
-# Raccolta in Cartella (modalità --onedir)
-# (Nessuna modifica necessaria qui rispetto alla versione precedente)
+# -----------------------------------------------------------------------------
+# COLLECT – crea la cartella dist/ControlloStatoNSIS (build ONEDIR)
+# -----------------------------------------------------------------------------
+
 coll = COLLECT(
     exe,
+    a.binaries,
     a.zipfiles,
-    a.datas,                          # Includi i dati aggiornati nella cartella finale
-    a.binaries,                       # Includi i binari
+    a.datas,
     strip=False,
-    upx=True,                         # Comprimi anche i file nella cartella
-    upx_exclude=[],
-    name='ControlloStatoNSIS'         # Nome della cartella in dist/
+    upx=False,
+    name="ControlloStatoNSIS",
 )
