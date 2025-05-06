@@ -2,6 +2,7 @@
 # main_window.py
 # Contains the main application window class and the Worker class
 # Versione aggiornata con stile Luma (Fase 1) e correzioni layout/stile
+# MODIFICATO: Importazioni differite per openpyxl e qtawesome
 
 import os
 import sys
@@ -10,22 +11,23 @@ import datetime
 import logging
 import logging.handlers
 from PyQt6 import QtCore, QtGui, QtWidgets, QtWebEngineWidgets, QtWebChannel, QtWebEngineCore
-
-import openpyxl
-from openpyxl import load_workbook
-from openpyxl.utils.exceptions import InvalidFileException
-from openpyxl.styles import Font, Color, PatternFill, numbers, Alignment
-from openpyxl.utils import get_column_letter
 import traceback
 
-# Importa qtawesome e imposta flag di disponibilità
-try:
-    import qtawesome as qta
-    QTAWESOME_AVAILABLE = True
-    print("INFO: Libreria 'qtawesome' caricata correttamente.")
-except ImportError:
-    QTAWESOME_AVAILABLE = False
-    print("WARNING: Libreria 'qtawesome' non trovata. Icone standard verranno usate.")
+# --- RIMOZIONE IMPORT TOP-LEVEL openpyxl ---
+# import openpyxl
+# from openpyxl import load_workbook
+# from openpyxl.utils.exceptions import InvalidFileException
+# from openpyxl.styles import Font, Color, PatternFill, numbers, Alignment
+# from openpyxl.utils import get_column_letter
+
+# --- RIMOZIONE IMPORT TOP-LEVEL qtawesome ---
+# try:
+#     import qtawesome as qta
+#     QTAWESOME_AVAILABLE = True
+#     print("INFO: Libreria 'qtawesome' caricata correttamente.")
+# except ImportError:
+#     QTAWESOME_AVAILABLE = False
+#     print("WARNING: Libreria 'qtawesome' non trovata. Icone standard verranno usate.")
 
 # Import from our modules
 from config import (
@@ -282,17 +284,26 @@ class App(QtWidgets.QWidget):
              except Exception as e:
                   print(f"ERRORE CRITICO: Impossibile configurare FileHandler per logging: {e}")
 
-             logging.getLogger("openpyxl").setLevel(logging.WARNING)
+             logging.getLogger("openpyxl").setLevel(logging.WARNING) # openpyxl ora è importato dopo
              logging.getLogger("urllib3").setLevel(logging.WARNING)
              logger.info("Sistema di logging configurato (Console=INFO, File=DEBUG).")
         else:
              logger.info("Sistema di logging già configurato.")
 
-    # Inserisci questo metodo aggiornato nella classe App
-    # sostituendo il vecchio _setup_ui
-
     def _setup_ui(self):
         """Crea e organizza i widget dell'interfaccia utente con stile Luma/DHL."""
+
+        # <---- INIZIO MODIFICA: Import e check qtawesome qui ---->
+        try:
+            import qtawesome as qta
+            QTAWESOME_AVAILABLE = True
+            logger.info("Libreria 'qtawesome' disponibile.") # Log meno verboso
+        except ImportError:
+            qta = None # Definisci qta come None se non disponibile
+            QTAWESOME_AVAILABLE = False
+            logger.warning("Libreria 'qtawesome' non trovata. Icone standard verranno usate.")
+        # <---- FINE MODIFICA ---->
+
         main_layout = QtWidgets.QHBoxLayout(self)
         main_layout.setContentsMargins(10, 10, 10, 10)  # Margine finestra
         main_layout.setSpacing(10)  # Spazio tra WebView e Pannello Controlli
@@ -325,11 +336,13 @@ class App(QtWidgets.QWidget):
         nav_button_style = f""" QPushButton {{ background-color: {COLOR_LUMA_WHITE}; border: 1px solid {COLOR_LUMA_GRAY_30}; border-radius: {LUMA_BORDER_RADIUS_BUTTON}; padding: 4px; min-width: 26px; max-width: 26px; min-height: 26px; max-height: 26px; outline: none; }} QPushButton:hover {{ background-color: {COLOR_LUMA_GRAY_10}; }} QPushButton:pressed {{ background-color: {COLOR_LUMA_GRAY_30}; }} QPushButton:disabled {{ background-color: {COLOR_LUMA_GRAY_10}; border-color: {COLOR_LUMA_GRAY_30}; }} """
 
         self.btn_back = QtWidgets.QPushButton()
-        if QTAWESOME_AVAILABLE:
+        # <---- MODIFICA QTAWESOME CHECK ---->
+        if QTAWESOME_AVAILABLE and qta:
             icon_back = qta.icon('fa5s.arrow-left', color=self.icon_color_nav, color_disabled=COLOR_LUMA_GRAY_50)
         else:
             icon_back = self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_ArrowBack)
-        self.btn_back.setIcon(icon_back);
+        self.btn_back.setIcon(icon_back)
+        # <---- FINE MODIFICA ---->
         self.btn_back.setToolTip("Indietro")
         self.btn_back.setStyleSheet(nav_button_style);
         self.btn_back.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
@@ -338,11 +351,13 @@ class App(QtWidgets.QWidget):
         nav_toolbar_layout.addWidget(self.btn_back)
 
         self.btn_forward = QtWidgets.QPushButton()
-        if QTAWESOME_AVAILABLE:
+        # <---- MODIFICA QTAWESOME CHECK ---->
+        if QTAWESOME_AVAILABLE and qta:
             icon_forward = qta.icon('fa5s.arrow-right', color=self.icon_color_nav, color_disabled=COLOR_LUMA_GRAY_50)
         else:
             icon_forward = self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_ArrowForward)
-        self.btn_forward.setIcon(icon_forward);
+        self.btn_forward.setIcon(icon_forward)
+        # <---- FINE MODIFICA ---->
         self.btn_forward.setToolTip("Avanti")
         self.btn_forward.setStyleSheet(nav_button_style);
         self.btn_forward.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
@@ -351,11 +366,13 @@ class App(QtWidgets.QWidget):
         nav_toolbar_layout.addWidget(self.btn_forward)
 
         self.btn_reload = QtWidgets.QPushButton()
-        if QTAWESOME_AVAILABLE:
+        # <---- MODIFICA QTAWESOME CHECK ---->
+        if QTAWESOME_AVAILABLE and qta:
             icon_reload = qta.icon('fa5s.sync-alt', color=self.icon_color_nav, color_disabled=COLOR_LUMA_GRAY_50)
         else:
             icon_reload = self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_BrowserReload)
-        self.btn_reload.setIcon(icon_reload);
+        self.btn_reload.setIcon(icon_reload)
+        # <---- FINE MODIFICA ---->
         self.btn_reload.setToolTip("Ricarica")
         self.btn_reload.setStyleSheet(nav_button_style);
         self.btn_reload.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
@@ -503,7 +520,10 @@ class App(QtWidgets.QWidget):
 
         # Pulsante Apri NSIS
         self.btn_open = QtWidgets.QPushButton(" Apri NSIS")
-        if QTAWESOME_AVAILABLE: self.btn_open.setIcon(qta.icon('fa5s.external-link-alt', color=self.icon_color_open))
+        # <---- MODIFICA QTAWESOME CHECK ---->
+        if QTAWESOME_AVAILABLE and qta:
+            self.btn_open.setIcon(qta.icon('fa5s.external-link-alt', color=self.icon_color_open))
+        # <---- FINE MODIFICA ---->
         self.btn_open.setStyleSheet(professional_button_style)
         self.btn_open.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         self.btn_open.setToolTip("Apre il sito NSIS nel browser interno")
@@ -512,8 +532,10 @@ class App(QtWidgets.QWidget):
 
         # Pulsante Avvia (Usa stile DHL aggiornato)
         self.btn_start = QtWidgets.QPushButton(" Seleziona e Avvia")
-        if QTAWESOME_AVAILABLE: self.btn_start.setIcon(
-            qta.icon('fa5s.play', color=self.icon_color_start))  # Usa icona scura
+        # <---- MODIFICA QTAWESOME CHECK ---->
+        if QTAWESOME_AVAILABLE and qta:
+            self.btn_start.setIcon(qta.icon('fa5s.play', color=self.icon_color_start))  # Usa icona scura
+        # <---- FINE MODIFICA ---->
         self.btn_start.setStyleSheet(primary_button_style)  # Applica stile DHL
         self.btn_start.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         self.btn_start.setToolTip("Seleziona un file Excel e avvia l'elaborazione")
@@ -522,7 +544,10 @@ class App(QtWidgets.QWidget):
 
         # Pulsante Interrompi
         self.btn_stop = QtWidgets.QPushButton(" Interrompi")
-        if QTAWESOME_AVAILABLE: self.btn_stop.setIcon(qta.icon('fa5s.stop', color=self.icon_color_stop))
+        # <---- MODIFICA QTAWESOME CHECK ---->
+        if QTAWESOME_AVAILABLE and qta:
+            self.btn_stop.setIcon(qta.icon('fa5s.stop', color=self.icon_color_stop))
+        # <---- FINE MODIFICA ---->
         self.btn_stop.setStyleSheet(stop_button_style)
         self.btn_stop.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         self.btn_stop.setToolTip("Interrompe l'elaborazione corrente")
@@ -591,12 +616,14 @@ class App(QtWidgets.QWidget):
         self.btn_clear_log.setToolTip("Pulisci Log")
         btn_clear_style = f""" QPushButton {{ background-color: transparent; border: 1px solid {COLOR_LUMA_GRAY_30}; border-radius: {LUMA_BORDER_RADIUS_BUTTON}; padding: 3px; min-width: 24px; max-width: 24px; min-height: 24px; max-height: 24px; outline: none; }} QPushButton:hover {{ background-color: {COLOR_LUMA_GRAY_10}; border-color: {COLOR_LUMA_GRAY_50}; }} QPushButton:pressed {{ background-color: {COLOR_LUMA_GRAY_30}; }} """
         self.btn_clear_log.setStyleSheet(btn_clear_style)
-        if QTAWESOME_AVAILABLE:
+        # <---- MODIFICA QTAWESOME CHECK ---->
+        if QTAWESOME_AVAILABLE and qta:
             try:
                 icon_clear = qta.icon('fa5s.trash-alt', color=COLOR_LUMA_GRAY_50, color_disabled='#AAAAAA')
             except Exception as e:
                 logger.warning(f"Errore icona clear: {e}"); icon_clear = QtGui.QIcon()
             self.btn_clear_log.setIcon(icon_clear)
+        # <---- FINE MODIFICA ---->
         self.btn_clear_log.setCursor(QtCore.Qt.CursorShape.PointingHandCursor);
         self.btn_clear_log.clicked.connect(self._clear_log)
         log_toolbar_layout.addWidget(self.btn_clear_log)
@@ -707,6 +734,17 @@ class App(QtWidgets.QWidget):
         if self.thread is not None and self.thread.isRunning():
             logger.warning("Elaborazione già in corso."); return
 
+        # <---- INIZIO MODIFICA: Import openpyxl qui ---->
+        try:
+            from openpyxl import load_workbook
+            from openpyxl.utils.exceptions import InvalidFileException
+            # Nota: Non importiamo stili/utils qui se non servono per leggere
+        except ImportError:
+             logger.error("Libreria 'openpyxl' non trovata. Impossibile leggere file Excel.")
+             QtWidgets.QMessageBox.critical(self, "Errore Dipendenza", "Libreria 'openpyxl' mancante.\nInstallala con 'pip install openpyxl'")
+             return
+        # <---- FINE MODIFICA ---->
+
         logger.debug("Apertura dialogo selezione file...")
         options = QtWidgets.QFileDialog.Option.DontUseNativeDialog if sys.platform == 'linux' else QtWidgets.QFileDialog.Option(0)
         file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
@@ -725,6 +763,7 @@ class App(QtWidgets.QWidget):
         workbook = None
         logger.debug(f"Lettura codici da: {self.current_file_path}")
         try:
+            # Ora puoi usare load_workbook senza problemi
             workbook = load_workbook(filename=self.current_file_path, read_only=True, data_only=True, keep_vba=False)
             if not workbook.sheetnames: raise ValueError("Il file Excel non contiene fogli.")
             sheet = workbook.active
@@ -751,7 +790,12 @@ class App(QtWidgets.QWidget):
 
         except (InvalidFileException, FileNotFoundError, ValueError, Exception) as e:
             error_prefix = "Errore File Excel"; error_msg = ""
-            if isinstance(e, InvalidFileException): error_msg = "File non valido o corrotto."; logger.error(error_msg, exc_info=True)
+            # <---- AGGIUNTA CONTROLLO ---->
+            if isinstance(e, NameError) and 'load_workbook' in str(e): # Caso raro in cui l'import sopra fallisce silenziosamente
+                error_msg = "Errore interno durante l'import di openpyxl."
+                logger.error(error_msg)
+            # <---- FINE AGGIUNTA ---->
+            elif isinstance(e, InvalidFileException): error_msg = "File non valido o corrotto."; logger.error(error_msg, exc_info=True)
             elif isinstance(e, FileNotFoundError): error_msg = f"File non trovato: {self.current_file_path}"; logger.error(error_msg)
             elif isinstance(e, ValueError): error_msg = f"Errore contenuto/struttura: {e}"; logger.warning(error_msg)
             else: error_msg = "Errore imprevisto lettura Excel."; error_prefix="Errore Lettura"; logger.exception(error_msg)
@@ -914,287 +958,297 @@ class App(QtWidgets.QWidget):
         elif not self.current_file_path:
              logger.warning("Impossibile salvare: percorso file non definito."); self._set_status_message("⚠️ File non definito.", False)
 
-        # Inserisci questo codice DENTRO la classe App in main_window.py,
-        # SOSTITUENDO la funzione _save_results_to_excel esistente.
-
     def _save_results_to_excel(self, results_list, original_file_path):
-            """
-            Scrive i risultati nel file Excel. Se le colonne di output mancano,
-            le crea automaticamente nella prima riga.
-            Salva sull'originale se possibile, altrimenti crea una copia.
-            """
-            logger.info(
-                f"Tentativo salvataggio {len(results_list)} risultati su {os.path.basename(original_file_path)}")
-            self._set_status_message(f"⏳ Salvataggio risultati...", True)
-            workbook = None
-            output_file_path = original_file_path
-            is_read_only_or_corrupted = False
-            workbook_to_save = None
-            sheet = None
+        """
+        Scrive i risultati nel file Excel. Se le colonne di output mancano,
+        le crea automaticamente nella prima riga.
+        Salva sull'originale se possibile, altrimenti crea una copia.
+        """
+        # <---- INIZIO MODIFICA: Import openpyxl qui ---->
+        try:
+            import openpyxl # Import base
+            from openpyxl.utils.exceptions import InvalidFileException
+            from openpyxl.styles import Font, Alignment, numbers # Import specifici per stile/formato
+            from openpyxl.utils import get_column_letter       # Import specifici per utils
+        except ImportError:
+             logger.error("Libreria 'openpyxl' non trovata. Impossibile salvare file Excel.")
+             QtWidgets.QMessageBox.critical(self, "Errore Dipendenza", "Libreria 'openpyxl' mancante.\nInstallala con 'pip install openpyxl'")
+             self._set_status_message("❌ Errore: openpyxl mancante", False)
+             return
+        # <---- FINE MODIFICA ---->
 
+        logger.info(
+            f"Tentativo salvataggio {len(results_list)} risultati su {os.path.basename(original_file_path)}")
+        self._set_status_message(f"⏳ Salvataggio risultati...", True)
+        workbook = None
+        output_file_path = original_file_path
+        is_read_only_or_corrupted = False
+        workbook_to_save = None
+        sheet = None
+
+        try:
+            # 1. Carica il workbook (gestendo permessi/errori e creando copia se necessario)
             try:
-                # 1. Carica il workbook (gestendo permessi/errori e creando copia se necessario)
+                workbook = openpyxl.load_workbook(filename=original_file_path) # USO openpyxl
+                logger.debug(f"Workbook '{os.path.basename(original_file_path)}' caricato per scrittura.")
+                is_read_only_or_corrupted = False
+                output_file_path = original_file_path
+            except (PermissionError, IOError) as pe:
+                logger.warning(
+                    f"Errore permesso/IO su '{os.path.basename(original_file_path)}': {pe}. Tento salvataggio su copia.")
+                is_read_only_or_corrupted = True
                 try:
-                    workbook = openpyxl.load_workbook(filename=original_file_path)
-                    logger.debug(f"Workbook '{os.path.basename(original_file_path)}' caricato per scrittura.")
-                    is_read_only_or_corrupted = False
-                    output_file_path = original_file_path
-                except (PermissionError, IOError) as pe:
-                    logger.warning(
-                        f"Errore permesso/IO su '{os.path.basename(original_file_path)}': {pe}. Tento salvataggio su copia.")
-                    is_read_only_or_corrupted = True
-                    try:
-                        # Ricarica in read-only per copiare i dati
-                        workbook_ro = openpyxl.load_workbook(filename=original_file_path, read_only=True,
-                                                             data_only=True)
-                        if not workbook_ro.sheetnames: raise ValueError("File originale (read-only) non ha fogli.")
-                        original_sheet = workbook_ro.active
-                        workbook = openpyxl.Workbook()  # Crea nuovo workbook per la copia
-                        sheet = workbook.active
-                        sheet.title = original_sheet.title
-                        # Copia intestazione e dati
-                        for row_idx in range(1, original_sheet.max_row + 1):
-                            row_values = [cell.value for cell in original_sheet[row_idx]]
-                            sheet.append(row_values)
-                        workbook_ro.close()  # Chiudi il read-only
-                        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                        base, ext = os.path.splitext(original_file_path)
-                        output_file_path = f"{base}_output_{timestamp}{ext}"
-                        logger.info(f"Salvataggio avverrà su nuovo file: {output_file_path}")
-                        QtWidgets.QMessageBox.information(self, "Salvataggio su Copia",
-                                                          f"Impossibile scrivere sul file originale.\n"
-                                                          f"I risultati verranno salvati nel file:\n"
-                                                          f"'{os.path.basename(output_file_path)}'")
-                    except Exception as e_copy:
-                        logger.error(f"Errore critico durante creazione copia file: {e_copy}", exc_info=True)
-                        self._set_status_message("❌ Errore creazione copia.", False)
-                        QtWidgets.QMessageBox.critical(self, "Errore Copia File",
-                                                       f"Impossibile creare copia del file:\n{e_copy}")
-                        return
-                except (InvalidFileException, KeyError, Exception) as e_load:
-                    # KeyError può accadere con file corrotti in openpyxl
-                    logger.error(f"Errore caricamento workbook '{os.path.basename(original_file_path)}': {e_load}",
-                                 exc_info=True)
-                    is_read_only_or_corrupted = True  # Trattalo come non scrivibile
-                    self._set_status_message("❌ Errore caricamento file.", False)
-                    QtWidgets.QMessageBox.critical(self, "Errore File",
-                                                   f"Impossibile caricare file Excel:\n'{os.path.basename(original_file_path)}'.\nPotrebbe essere corrotto o non valido.")
-                    return
-
-                # Assicurati di avere un foglio su cui lavorare
-                if not sheet:  # Se non è stato creato dalla logica di copia
-                    if not workbook or not workbook.sheetnames:
-                        raise ValueError("Workbook non valido o senza fogli.")
+                    # Ricarica in read-only per copiare i dati
+                    workbook_ro = openpyxl.load_workbook(filename=original_file_path, read_only=True, # USO openpyxl
+                                                         data_only=True)
+                    if not workbook_ro.sheetnames: raise ValueError("File originale (read-only) non ha fogli.")
+                    original_sheet = workbook_ro.active
+                    workbook = openpyxl.Workbook()  # Crea nuovo workbook per la copia # USO openpyxl
                     sheet = workbook.active
-                workbook_to_save = workbook  # Il workbook su cui effettivamente si salverà
-
-                # --- NUOVA LOGICA: GESTIONE E MAPPATURA DIRETTA INTESTAZIONI ---
-                header_row_idx = 1
-                header_row = sheet[header_row_idx]
-                # Leggi le intestazioni esistenti INIZIALMENTE
-                existing_headers = {str(cell.value).strip().lower(): cell.column for cell in header_row if cell.value}
-
-                # Mappa nomi config -> nomi excel effettivi (come prima)
-                col_name_map = {
-                    'Input Code': COL_RICERCA,
-                    'Stato': COL_STATO,
-                    'Protocollo uscita': COL_PROTOCOLLO,
-                    'Provvedimento': COL_PROVVEDIMENTO,
-                    'Data Provvedimento': COL_DATA_PROVV,
-                    'Codice richiesta (risultato)': COL_CODICE_RIS,
-                    'Note Usmaf': COL_NOTE
-                }
-                # Lista delle chiavi config per le colonne di output
-                output_config_keys = [
-                    'Stato', 'Protocollo uscita', 'Provvedimento',
-                    'Data Provvedimento', 'Codice richiesta (risultato)', 'Note Usmaf'
-                ]
-
-                # Dizionario per memorizzare gli indici finali delle colonne
-                final_col_indices = {}
-                header_font = Font(bold=True)  # Font per nuove intestazioni
-
-                # 1. Trova la colonna di ricerca (obbligatoria)
-                ricerca_col_name_lower = COL_RICERCA.lower()
-                if ricerca_col_name_lower in existing_headers:
-                    final_col_indices['Input Code'] = existing_headers[ricerca_col_name_lower]
-                    ricerca_col_idx = final_col_indices['Input Code']  # Memorizza per dopo
-                else:
-                    raise ValueError(f"Colonna di ricerca obbligatoria '{COL_RICERCA}' non trovata nella prima riga.")
-
-                # Determina la prossima colonna libera *all'inizio*
-                # Usiamo max_column qui, sperando sia affidabile. Se ci sono colonne nascoste potrebbe
-                # ancora dare problemi, ma è lo standard openpyxl.
-                next_available_col_idx = sheet.max_column + 1
-                logger.debug(
-                    f"Prossima colonna libera iniziale rilevata: {get_column_letter(next_available_col_idx)} ({next_available_col_idx})")
-
-                # 2. Trova/Crea le colonne di output e mappa gli indici
-                missing_added_log = []
-                for config_key in output_config_keys:
-                    excel_header_name = col_name_map[config_key]
-                    excel_header_name_lower = excel_header_name.lower()
-
-                    if excel_header_name_lower in existing_headers:
-                        # Colonna già esistente, usa il suo indice
-                        col_idx = existing_headers[excel_header_name_lower]
-                        final_col_indices[config_key] = col_idx
-                        logger.debug(
-                            f"Intestazione '{excel_header_name}' trovata alla colonna {get_column_letter(col_idx)} ({col_idx})")
-                    else:
-                        # Colonna mancante: aggiungila alla prossima colonna libera
-                        col_idx = next_available_col_idx
-                        cell = sheet.cell(row=header_row_idx, column=col_idx, value=excel_header_name)
-                        cell.font = header_font
-                        final_col_indices[config_key] = col_idx
-                        missing_added_log.append(f"'{excel_header_name}' in col {get_column_letter(col_idx)}")
-                        logger.debug(
-                            f"Intestazione '{excel_header_name}' AGGIUNTA alla colonna {get_column_letter(col_idx)} ({col_idx})")
-                        # Incrementa l'indice per la prossima colonna da aggiungere
-                        next_available_col_idx += 1
-
-                if missing_added_log:
-                    logger.info(f"Aggiunte intestazioni mancanti: {', '.join(missing_added_log)}.")
-
-                # --- FINE NUOVA LOGICA INTESTAZIONI ---
-
-                # Ora `final_col_indices` dovrebbe contenere la mappatura corretta
-                # tra le chiavi di configurazione ('Stato', 'Protocollo', ecc.) e
-                # l'indice numerico della colonna corrispondente nel foglio Excel.
-
-                # Stampa log indici finali per verifica
-                log_indices_str = ", ".join(
-                    [f"'{k}': col {get_column_letter(v)}({v})" for k, v in final_col_indices.items()])
-                logger.debug(f"Indici colonne finali determinati: {log_indices_str}")
-
-                # Il codice successivo (da "# 3. Scrivi i dati...") rimane invariato
-                # perché ora dovrebbe usare gli indici corretti da final_col_indices.
-
-                # 3. Scrivi i dati nelle righe corrette usando gli indici finali
-                results_map = {str(res['Input Code']).strip(): res for res in results_list}
-                updated_rows = 0
-                processed_keys = set()
-                # Definisci stili comuni per le celle di output
-                # MODIFICA QUI: wrap_text=False per testo lineare
-                output_cell_alignment = Alignment(horizontal='left', vertical='top', wrap_text=False)
-                output_cell_number_format = numbers.FORMAT_TEXT
-
-                for row_idx in range(header_row_idx + 1, sheet.max_row + 1):
-                    cell_ricerca = sheet.cell(row=row_idx, column=ricerca_col_idx)
-                    excel_code = str(cell_ricerca.value).strip() if cell_ricerca.value is not None else ''
-
-                    if excel_code and excel_code in results_map:
-                        result_data = results_map[excel_code]
-                        processed_keys.add(excel_code)
-
-                        # Scrivi i valori nelle colonne di output corrispondenti
-                        for config_key, col_idx in final_col_indices.items():
-                            # Salta la colonna di ricerca, aggiorniamo solo l'output
-                            if config_key == 'Input Code':
-                                continue
-
-                            if config_key in result_data:
-                                # Ottieni il valore originale
-                                value_to_write = result_data.get(config_key, '')
-
-                                # MODIFICA QUI: Imposta "NOTA USMAF" se la colonna è 'Note Usmaf'
-                                # e il valore è vuoto (None, stringa vuota o solo spazi)
-                                if config_key == 'Note Usmaf':
-                                    # Controlla se il valore è considerato "vuoto"
-                                    if value_to_write is None or not str(value_to_write).strip():
-                                        value_to_write = "NOTA USMAF"
-                                        logger.debug(
-                                            f"Codice '{excel_code}': Nota Usmaf vuota, impostato valore di default.")
-
-                                # Scrivi il valore (originale o modificato)
-                                cell_to_write = sheet.cell(row=row_idx, column=col_idx)
-                                cell_to_write.value = value_to_write
-                                # Applica formattazione (con wrap_text=False)
-                                cell_to_write.number_format = output_cell_number_format
-                                cell_to_write.alignment = output_cell_alignment
-                            else:
-                                logger.warning(
-                                    f"Chiave risultato '{config_key}' non trovata nei dati per codice '{excel_code}'. Cella non aggiornata.")
-
-                        updated_rows += 1
-                        # Rimuovi dal dizionario per efficienza (se ci sono duplicati nel file Excel)
-                        # Se vuoi gestire i duplicati, decommenta la riga sotto:
-                        # if excel_code in results_map: del results_map[excel_code]
-
-                unmatched_codes = set(results_map.keys()) - processed_keys
-                if unmatched_codes:
-                    logger.warning(
-                        f"{len(unmatched_codes)} codici dai risultati non trovati nella colonna '{COL_RICERCA}' del file Excel. Esempi: {list(unmatched_codes)[:5]}...")
-
-                    # --- AGGIUNTA: Auto-Fit Larghezza Colonne ---
-                logger.debug("Avvio auto-fit larghezza colonne...")
-                for col_idx_numeric in range(1, sheet.max_column + 1):
-                    column_letter = get_column_letter(col_idx_numeric)
-                    max_length = 0
-                    try:
-                        # Itera su tutte le celle della colonna per trovare la lunghezza massima
-                        for cell in sheet[column_letter]:
-                            if cell.value:
-                                # Considera la lunghezza della rappresentazione stringa del valore
-                                # Aggiungi un piccolo margine se necessario (es. +2)
-                                cell_length = len(str(cell.value))
-                                if cell_length > max_length:
-                                    max_length = cell_length
-
-                        # Imposta la larghezza della colonna (aggiungi un piccolo margine, es. + 2)
-                        # Il valore della larghezza in openpyxl è approssimativo al numero di caratteri
-                        adjusted_width = max_length + 2
-                        sheet.column_dimensions[column_letter].width = adjusted_width
-                        # logger.debug(f"Impostata larghezza colonna {column_letter} a {adjusted_width} (max_length={max_length})")
-
-                    except Exception as e_width:
-                        logger.warning(f"Errore durante l'impostazione larghezza colonna {column_letter}: {e_width}")
-                logger.debug("Auto-fit larghezza colonne completato.")
-                    # --- FINE AGGIUNTA ---
-
-                # 4. Salva il workbook
-                logger.info(f"Tentativo salvataggio modifiche su '{os.path.basename(output_file_path)}'...")
-                try:
-                    workbook_to_save.save(output_file_path)
-                    logger.info(
-                        f"Salvataggio '{os.path.basename(output_file_path)}' completato con successo. {updated_rows} righe aggiornate.")
-                    self._set_status_message(f"✅ Risultati salvati.", False)
-                    QtWidgets.QMessageBox.information(self, "Salvataggio Completato",
-                                                      f"{updated_rows} righe aggiornate nel file:\n"
+                    sheet.title = original_sheet.title
+                    # Copia intestazione e dati
+                    for row_idx in range(1, original_sheet.max_row + 1):
+                        row_values = [cell.value for cell in original_sheet[row_idx]]
+                        sheet.append(row_values)
+                    workbook_ro.close()  # Chiudi il read-only
+                    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                    base, ext = os.path.splitext(original_file_path)
+                    output_file_path = f"{base}_output_{timestamp}{ext}"
+                    logger.info(f"Salvataggio avverrà su nuovo file: {output_file_path}")
+                    QtWidgets.QMessageBox.information(self, "Salvataggio su Copia",
+                                                      f"Impossibile scrivere sul file originale.\n"
+                                                      f"I risultati verranno salvati nel file:\n"
                                                       f"'{os.path.basename(output_file_path)}'")
-                except Exception as e_save:
-                    logger.error(f"Errore durante il salvataggio finale del file '{output_file_path}': {e_save}",
-                                 exc_info=True)
-                    self._set_status_message(f"❌ Errore salvataggio.", False)
-                    QtWidgets.QMessageBox.critical(self, "Errore Salvataggio",
-                                                   f"Impossibile salvare le modifiche nel file:\n"
-                                                   f"'{os.path.basename(output_file_path)}'.\n"
-                                                   f"Verificare che il file non sia aperto altrove e di avere i permessi.\n\n Dettaglio: {e_save}")
+                except Exception as e_copy:
+                    logger.error(f"Errore critico durante creazione copia file: {e_copy}", exc_info=True)
+                    self._set_status_message("❌ Errore creazione copia.", False)
+                    QtWidgets.QMessageBox.critical(self, "Errore Copia File",
+                                                   f"Impossibile creare copia del file:\n{e_copy}")
+                    return
+            except (InvalidFileException, KeyError, Exception) as e_load: # USO InvalidFileException
+                # KeyError può accadere con file corrotti in openpyxl
+                logger.error(f"Errore caricamento workbook '{os.path.basename(original_file_path)}': {e_load}",
+                             exc_info=True)
+                is_read_only_or_corrupted = True  # Trattalo come non scrivibile
+                self._set_status_message("❌ Errore caricamento file.", False)
+                QtWidgets.QMessageBox.critical(self, "Errore File",
+                                               f"Impossibile caricare file Excel:\n'{os.path.basename(original_file_path)}'.\nPotrebbe essere corrotto o non valido.")
+                return
 
-            except (InvalidFileException, FileNotFoundError, ValueError, RuntimeError, Exception) as e:
-                error_msg = str(e) if isinstance(e, (InvalidFileException, FileNotFoundError, ValueError,
-                                                     RuntimeError)) else "Errore imprevisto durante il processo di salvataggio Excel."
-                logger.exception(f"Errore critico nel processo _save_results_to_excel: {error_msg}")
-                self._set_status_message(f"❌ Errore salvataggio Excel", False)
-                QtWidgets.QMessageBox.critical(self, "Errore Salvataggio Excel",
-                                               f"Si è verificato un errore:\n{error_msg}\n\n"
-                                               f"Controllare i log per maggiori dettagli.")
-            finally:
-                # 5. Chiudi il workbook in ogni caso
-                if workbook_to_save:  # Prova a chiudere quello che stavamo per salvare
-                    try:
-                        workbook_to_save.close()
-                        logger.debug("Workbook (workbook_to_save) chiuso.")
-                    except Exception as ce:
-                        logger.warning(f"Errore chiusura workbook (workbook_to_save): {ce}")
-                elif workbook:  # Altrimenti chiudi quello originale caricato se esiste
-                    try:
-                        workbook.close()
-                        logger.debug("Workbook (originale/copia) chiuso.")
-                    except Exception as ce:
-                        logger.warning(f"Errore chiusura workbook (originale/copia): {ce}")
+            # Assicurati di avere un foglio su cui lavorare
+            if not sheet:  # Se non è stato creato dalla logica di copia
+                if not workbook or not workbook.sheetnames:
+                    raise ValueError("Workbook non valido o senza fogli.")
+                sheet = workbook.active
+            workbook_to_save = workbook  # Il workbook su cui effettivamente si salverà
 
-                self.spinner.stopAnimation()  # Assicura che lo spinner si fermi
+            # --- NUOVA LOGICA: GESTIONE E MAPPATURA DIRETTA INTESTAZIONI ---
+            header_row_idx = 1
+            header_row = sheet[header_row_idx]
+            # Leggi le intestazioni esistenti INIZIALMENTE
+            existing_headers = {str(cell.value).strip().lower(): cell.column for cell in header_row if cell.value}
+
+            # Mappa nomi config -> nomi excel effettivi (come prima)
+            col_name_map = {
+                'Input Code': COL_RICERCA,
+                'Stato': COL_STATO,
+                'Protocollo uscita': COL_PROTOCOLLO,
+                'Provvedimento': COL_PROVVEDIMENTO,
+                'Data Provvedimento': COL_DATA_PROVV,
+                'Codice richiesta (risultato)': COL_CODICE_RIS,
+                'Note Usmaf': COL_NOTE
+            }
+            # Lista delle chiavi config per le colonne di output
+            output_config_keys = [
+                'Stato', 'Protocollo uscita', 'Provvedimento',
+                'Data Provvedimento', 'Codice richiesta (risultato)', 'Note Usmaf'
+            ]
+
+            # Dizionario per memorizzare gli indici finali delle colonne
+            final_col_indices = {}
+            header_font = Font(bold=True)  # Font per nuove intestazioni # USO Font
+
+            # 1. Trova la colonna di ricerca (obbligatoria)
+            ricerca_col_name_lower = COL_RICERCA.lower()
+            if ricerca_col_name_lower in existing_headers:
+                final_col_indices['Input Code'] = existing_headers[ricerca_col_name_lower]
+                ricerca_col_idx = final_col_indices['Input Code']  # Memorizza per dopo
+            else:
+                raise ValueError(f"Colonna di ricerca obbligatoria '{COL_RICERCA}' non trovata nella prima riga.")
+
+            # Determina la prossima colonna libera *all'inizio*
+            # Usiamo max_column qui, sperando sia affidabile. Se ci sono colonne nascoste potrebbe
+            # ancora dare problemi, ma è lo standard openpyxl.
+            next_available_col_idx = sheet.max_column + 1
+            logger.debug(
+                f"Prossima colonna libera iniziale rilevata: {get_column_letter(next_available_col_idx)} ({next_available_col_idx})") # USO get_column_letter
+
+            # 2. Trova/Crea le colonne di output e mappa gli indici
+            missing_added_log = []
+            for config_key in output_config_keys:
+                excel_header_name = col_name_map[config_key]
+                excel_header_name_lower = excel_header_name.lower()
+
+                if excel_header_name_lower in existing_headers:
+                    # Colonna già esistente, usa il suo indice
+                    col_idx = existing_headers[excel_header_name_lower]
+                    final_col_indices[config_key] = col_idx
+                    logger.debug(
+                        f"Intestazione '{excel_header_name}' trovata alla colonna {get_column_letter(col_idx)} ({col_idx})") # USO get_column_letter
+                else:
+                    # Colonna mancante: aggiungila alla prossima colonna libera
+                    col_idx = next_available_col_idx
+                    cell = sheet.cell(row=header_row_idx, column=col_idx, value=excel_header_name)
+                    cell.font = header_font
+                    final_col_indices[config_key] = col_idx
+                    missing_added_log.append(f"'{excel_header_name}' in col {get_column_letter(col_idx)}") # USO get_column_letter
+                    logger.debug(
+                        f"Intestazione '{excel_header_name}' AGGIUNTA alla colonna {get_column_letter(col_idx)} ({col_idx})") # USO get_column_letter
+                    # Incrementa l'indice per la prossima colonna da aggiungere
+                    next_available_col_idx += 1
+
+            if missing_added_log:
+                logger.info(f"Aggiunte intestazioni mancanti: {', '.join(missing_added_log)}.")
+
+            # --- FINE NUOVA LOGICA INTESTAZIONI ---
+
+            # Ora `final_col_indices` dovrebbe contenere la mappatura corretta
+            # tra le chiavi di configurazione ('Stato', 'Protocollo', ecc.) e
+            # l'indice numerico della colonna corrispondente nel foglio Excel.
+
+            # Stampa log indici finali per verifica
+            log_indices_str = ", ".join(
+                [f"'{k}': col {get_column_letter(v)}({v})" for k, v in final_col_indices.items()]) # USO get_column_letter
+            logger.debug(f"Indici colonne finali determinati: {log_indices_str}")
+
+            # Il codice successivo (da "# 3. Scrivi i dati...") rimane invariato
+            # perché ora dovrebbe usare gli indici corretti da final_col_indices.
+
+            # 3. Scrivi i dati nelle righe corrette usando gli indici finali
+            results_map = {str(res['Input Code']).strip(): res for res in results_list}
+            updated_rows = 0
+            processed_keys = set()
+            # Definisci stili comuni per le celle di output
+            # MODIFICA QUI: wrap_text=False per testo lineare
+            output_cell_alignment = Alignment(horizontal='left', vertical='top', wrap_text=False) # USO Alignment
+            output_cell_number_format = numbers.FORMAT_TEXT # USO numbers
+
+            for row_idx in range(header_row_idx + 1, sheet.max_row + 1):
+                cell_ricerca = sheet.cell(row=row_idx, column=ricerca_col_idx)
+                excel_code = str(cell_ricerca.value).strip() if cell_ricerca.value is not None else ''
+
+                if excel_code and excel_code in results_map:
+                    result_data = results_map[excel_code]
+                    processed_keys.add(excel_code)
+
+                    # Scrivi i valori nelle colonne di output corrispondenti
+                    for config_key, col_idx in final_col_indices.items():
+                        # Salta la colonna di ricerca, aggiorniamo solo l'output
+                        if config_key == 'Input Code':
+                            continue
+
+                        if config_key in result_data:
+                            # Ottieni il valore originale
+                            value_to_write = result_data.get(config_key, '')
+
+                            # MODIFICA QUI: Imposta "NOTA USMAF" se la colonna è 'Note Usmaf'
+                            # e il valore è vuoto (None, stringa vuota o solo spazi)
+                            if config_key == 'Note Usmaf':
+                                # Controlla se il valore è considerato "vuoto"
+                                if value_to_write is None or not str(value_to_write).strip():
+                                    value_to_write = "NOTA USMAF"
+                                    logger.debug(
+                                        f"Codice '{excel_code}': Nota Usmaf vuota, impostato valore di default.")
+
+                            # Scrivi il valore (originale o modificato)
+                            cell_to_write = sheet.cell(row=row_idx, column=col_idx)
+                            cell_to_write.value = value_to_write
+                            # Applica formattazione (con wrap_text=False)
+                            cell_to_write.number_format = output_cell_number_format
+                            cell_to_write.alignment = output_cell_alignment
+                        else:
+                            logger.warning(
+                                f"Chiave risultato '{config_key}' non trovata nei dati per codice '{excel_code}'. Cella non aggiornata.")
+
+                    updated_rows += 1
+                    # Rimuovi dal dizionario per efficienza (se ci sono duplicati nel file Excel)
+                    # Se vuoi gestire i duplicati, decommenta la riga sotto:
+                    # if excel_code in results_map: del results_map[excel_code]
+
+            unmatched_codes = set(results_map.keys()) - processed_keys
+            if unmatched_codes:
+                logger.warning(
+                    f"{len(unmatched_codes)} codici dai risultati non trovati nella colonna '{COL_RICERCA}' del file Excel. Esempi: {list(unmatched_codes)[:5]}...")
+
+                # --- AGGIUNTA: Auto-Fit Larghezza Colonne ---
+            logger.debug("Avvio auto-fit larghezza colonne...")
+            for col_idx_numeric in range(1, sheet.max_column + 1):
+                column_letter = get_column_letter(col_idx_numeric) # USO get_column_letter
+                max_length = 0
+                try:
+                    # Itera su tutte le celle della colonna per trovare la lunghezza massima
+                    for cell in sheet[column_letter]:
+                        if cell.value:
+                            # Considera la lunghezza della rappresentazione stringa del valore
+                            # Aggiungi un piccolo margine se necessario (es. +2)
+                            cell_length = len(str(cell.value))
+                            if cell_length > max_length:
+                                max_length = cell_length
+
+                    # Imposta la larghezza della colonna (aggiungi un piccolo margine, es. + 2)
+                    # Il valore della larghezza in openpyxl è approssimativo al numero di caratteri
+                    adjusted_width = max_length + 2
+                    sheet.column_dimensions[column_letter].width = adjusted_width
+                    # logger.debug(f"Impostata larghezza colonna {column_letter} a {adjusted_width} (max_length={max_length})")
+
+                except Exception as e_width:
+                    logger.warning(f"Errore durante l'impostazione larghezza colonna {column_letter}: {e_width}")
+            logger.debug("Auto-fit larghezza colonne completato.")
+                # --- FINE AGGIUNTA ---
+
+            # 4. Salva il workbook
+            logger.info(f"Tentativo salvataggio modifiche su '{os.path.basename(output_file_path)}'...")
+            try:
+                workbook_to_save.save(output_file_path)
+                logger.info(
+                    f"Salvataggio '{os.path.basename(output_file_path)}' completato con successo. {updated_rows} righe aggiornate.")
+                self._set_status_message(f"✅ Risultati salvati.", False)
+                QtWidgets.QMessageBox.information(self, "Salvataggio Completato",
+                                                  f"{updated_rows} righe aggiornate nel file:\n"
+                                                  f"'{os.path.basename(output_file_path)}'")
+            except Exception as e_save:
+                logger.error(f"Errore durante il salvataggio finale del file '{output_file_path}': {e_save}",
+                             exc_info=True)
+                self._set_status_message(f"❌ Errore salvataggio.", False)
+                QtWidgets.QMessageBox.critical(self, "Errore Salvataggio",
+                                               f"Impossibile salvare le modifiche nel file:\n"
+                                               f"'{os.path.basename(output_file_path)}'.\n"
+                                               f"Verificare che il file non sia aperto altrove e di avere i permessi.\n\n Dettaglio: {e_save}")
+
+        except (InvalidFileException, FileNotFoundError, ValueError, RuntimeError, Exception) as e: # USO InvalidFileException
+            error_msg = str(e) if isinstance(e, (InvalidFileException, FileNotFoundError, ValueError, # USO InvalidFileException
+                                                 RuntimeError)) else "Errore imprevisto durante il processo di salvataggio Excel."
+            logger.exception(f"Errore critico nel processo _save_results_to_excel: {error_msg}")
+            self._set_status_message(f"❌ Errore salvataggio Excel", False)
+            QtWidgets.QMessageBox.critical(self, "Errore Salvataggio Excel",
+                                           f"Si è verificato un errore:\n{error_msg}\n\n"
+                                           f"Controllare i log per maggiori dettagli.")
+        finally:
+            # 5. Chiudi il workbook in ogni caso
+            if workbook_to_save:  # Prova a chiudere quello che stavamo per salvare
+                try:
+                    workbook_to_save.close()
+                    logger.debug("Workbook (workbook_to_save) chiuso.")
+                except Exception as ce:
+                    logger.warning(f"Errore chiusura workbook (workbook_to_save): {ce}")
+            elif workbook:  # Altrimenti chiudi quello originale caricato se esiste
+                try:
+                    workbook.close()
+                    logger.debug("Workbook (originale/copia) chiuso.")
+                except Exception as ce:
+                    logger.warning(f"Errore chiusura workbook (originale/copia): {ce}")
+
+            self.spinner.stopAnimation()  # Assicura che lo spinner si fermi
 
 
     @QtCore.pyqtSlot()
