@@ -125,8 +125,8 @@ class App(QtWidgets.QWidget):
         # Create window controls container
         self._window_controls = QtWidgets.QWidget(self)
         self._window_controls.setObjectName("windowControls")
-        self._window_controls.setFixedSize(100, 32)
-        self._window_controls.move(self.width() - 110, 8)
+        self._window_controls.setFixedSize(120, 40)
+        self._window_controls.move(self.width() - 130, 10)
         
         # Ensure controls are on top
         self._window_controls.raise_()
@@ -143,63 +143,72 @@ class App(QtWidgets.QWidget):
         # Minimize button
         self._minimize_btn = QtWidgets.QPushButton("−")
         self._minimize_btn.setObjectName("minimizeButton")
-        self._minimize_btn.setFixedSize(28, 28)
+        self._minimize_btn.setFixedSize(32, 32)
         self._minimize_btn.clicked.connect(self.showMinimized)
         
         # Maximize/Restore button
         self._maximize_btn = QtWidgets.QPushButton("□")
         self._maximize_btn.setObjectName("maximizeButton")
-        self._maximize_btn.setFixedSize(28, 28)
+        self._maximize_btn.setFixedSize(32, 32)
         self._maximize_btn.clicked.connect(self._toggle_maximize)
         
         # Close button
         self._close_btn = QtWidgets.QPushButton("×")
         self._close_btn.setObjectName("closeButton")
-        self._close_btn.setFixedSize(28, 28)
+        self._close_btn.setFixedSize(32, 32)
         self._close_btn.clicked.connect(self.close)
         
         controls_layout.addWidget(self._minimize_btn)
         controls_layout.addWidget(self._maximize_btn)
         controls_layout.addWidget(self._close_btn)
         
-        # Style the controls with modern design
+        # Style the controls with modern black design
         self._window_controls.setStyleSheet("""
             QWidget#windowControls {
                 background: transparent;
                 border: none;
             }
             QPushButton#minimizeButton, QPushButton#maximizeButton, QPushButton#closeButton {
-                background: transparent;
-                border: none;
-                color: rgba(255, 255, 255, 0.8);
-                font-size: 14px;
-                font-weight: 500;
-                border-radius: 6px;
+                background: rgba(0, 0, 0, 0.7);
+                border: 1px solid rgba(0, 0, 0, 0.3);
+                color: rgba(255, 255, 255, 0.9);
+                font-size: 16px;
+                font-weight: 600;
+                border-radius: 8px;
                 margin: 0px;
-                min-width: 28px;
-                min-height: 28px;
-                max-width: 28px;
-                max-height: 28px;
+                min-width: 32px;
+                min-height: 32px;
+                max-width: 32px;
+                max-height: 32px;
+                backdrop-filter: blur(10px);
             }
             QPushButton#minimizeButton:hover, QPushButton#maximizeButton:hover {
-                background: rgba(255, 255, 255, 0.15);
+                background: rgba(0, 0, 0, 0.85);
                 color: rgba(255, 255, 255, 1.0);
-                border-radius: 6px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 8px;
+                transform: scale(1.05);
             }
             QPushButton#closeButton:hover {
-                background: rgba(220, 53, 69, 0.9);
+                background: rgba(220, 53, 69, 0.95);
                 color: white;
-                border-radius: 6px;
+                border: 1px solid rgba(220, 53, 69, 0.8);
+                border-radius: 8px;
+                transform: scale(1.05);
             }
             QPushButton#minimizeButton:pressed, QPushButton#maximizeButton:pressed {
-                background: rgba(255, 255, 255, 0.25);
+                background: rgba(0, 0, 0, 0.95);
                 color: rgba(255, 255, 255, 1.0);
-                border-radius: 6px;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 8px;
+                transform: scale(0.95);
             }
             QPushButton#closeButton:pressed {
                 background: rgba(200, 35, 51, 1.0);
                 color: white;
-                border-radius: 6px;
+                border: 1px solid rgba(200, 35, 51, 1.0);
+                border-radius: 8px;
+                transform: scale(0.95);
             }
         """)
     
@@ -261,10 +270,10 @@ class App(QtWidgets.QWidget):
         if hasattr(self, '_window_controls'):
             if self._is_maximized:
                 # Position controls in top-right corner when maximized
-                self._window_controls.move(self.width() - 110, 8)
+                self._window_controls.move(self.width() - 130, 10)
             else:
                 # Position controls normally
-                self._window_controls.move(self.width() - 110, 8)
+                self._window_controls.move(self.width() - 130, 10)
     
     def mousePressEvent(self, event):
         """Handle mouse press for window dragging and resizing."""

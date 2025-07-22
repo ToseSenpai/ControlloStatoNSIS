@@ -1,6 +1,5 @@
 # main.py
-# Punto di ingresso ottimizzato per usare lo splash nativo di PyInstaller.
-# RIMOSSO: Tutta la logica per QSplashScreen.
+# Punto di ingresso con splash screen personalizzata.
 
 import sys
 import os
@@ -16,6 +15,13 @@ except ImportError as e:
     if not app_temp: app_temp = QtWidgets.QApplication(sys.argv)
     QtWidgets.QMessageBox.critical(None, "Errore Import", f"Modulo App non trovato o errato:\n{e}\n\nControllare main_window/app.py.")
     sys.exit(1)
+
+# Importa la splash screen personalizzata
+try:
+    from splash_screen_simple import show_splash_screen_simple
+except ImportError as e:
+    print(f"WARNING: Impossibile importare splash screen: {e}")
+    show_splash_screen = None
 
 # Funzione per caricare i font (invariata)
 def load_fonts():
@@ -75,21 +81,46 @@ if __name__ == '__main__':
     # Crea QApplication
     app = QtWidgets.QApplication(sys.argv)
 
-    # --- NESSUN CODICE QSplashScreen QUI ---
-    # Lo splash nativo viene mostrato dal bootloader di PyInstaller
-
-    # --- Carica Font e Crea Finestra Principale ---
+    # Mostra splash screen personalizzata
+    splash = None
     try:
-        ui_font_family_name = load_fonts()
-        print("INFO: Creazione finestra principale applicazione...")
-        # Crea l'istanza della classe App (da main_window.py)
-        window = App(ui_font_family=ui_font_family_name)
-        print("INFO: Finestra principale creata.")
+        splash = show_splash_screen_simple()
+        print("INFO: Splash screen semplice mostrata.")
+    except Exception as e:
+        print(f"WARNING: Errore nel mostrare splash screen semplice: {e}")
+        splash = None
 
-        # Mostra la finestra. Lo splash nativo scomparirà automaticamente.
-        window.show()
-        print("INFO: Finestra principale mostrata.")
+    # Funzione per caricare e mostrare l'app quando la splash screen è completata
+    def load_and_show_main_app():
+        try:
+            print("INFO: Inizio caricamento applicazione principale...")
+            ui_font_family_name = load_fonts()
+            print("INFO: Creazione finestra principale applicazione...")
+            # Crea l'istanza della classe App (da main_window.py)
+            window = App(ui_font_family=ui_font_family_name)
+            print("INFO: Finestra principale creata.")
 
+            # Mostra la finestra principale
+            window.show()
+            print("INFO: Finestra principale mostrata.")
+            
+            if splash:
+                splash.finish(window)
+                print("INFO: Splash screen chiusa.")
+        except Exception as e:
+            print(f"ERRORE nel caricamento dell'app: {e}")
+            if splash:
+                splash.close()
+
+    # Aspetta che la splash screen arrivi al 100% prima di caricare l'app
+    if splash:
+        # Connetti il segnale di completamento
+        splash.splash_completed.connect(load_and_show_main_app)
+    else:
+        # Se non c'è splash screen, carica subito l'app
+        load_and_show_main_app()
+
+    try:
         print("INFO: Avvio event loop applicazione...")
         exit_code = app.exec()
         print(f"INFO: Applicazione terminata con codice {exit_code}.")

@@ -1016,7 +1016,7 @@ class SignatureLabel(QtWidgets.QLabel):
         self.setStyleSheet(f"""
             QLabel#signatureLabel {{
                 background: transparent;
-                color: rgba(255, 255, 255, 0.8);
+                color: rgba(0, 0, 0, 0.9);
                 font-size: 10px;
                 font-weight: 600;
                 padding: 0px;

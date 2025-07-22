@@ -1,154 +1,103 @@
-# Controllo Stato Richiesta NSIS (v2.0.0)
+# Controllo Stato NSIS
 
-## Descrizione
+Applicazione desktop per il controllo dello stato delle spedizioni NSIS con interfaccia moderna e splash screen elegante.
 
-Questa applicazione desktop, sviluppata in Python (versione 3.x) e PyQt6, permette di automatizzare il controllo dello stato di richieste (presumibilmente sul sistema NSIS o un portale simile).
+## 🚀 Caratteristiche
 
-L'applicazione svolge le seguenti funzioni principali:
-1.  Permette all'utente di selezionare un file Excel (`.xlsx`).
-2.  Legge un elenco di codici di richiesta dalla colonna specificata ("Ricerca") nel file Excel.
-3.  Per ciascun codice, utilizza un componente `QWebEngineView` integrato per navigare sulla pagina web pertinente e inserire il codice nel campo di ricerca.
-4.  Estrae lo stato della richiesta e altri dati associati (protocollo, provvedimento, data, note, ecc.) dalla tabella dei risultati sulla pagina web.
-5.  Aggiorna l'interfaccia utente in tempo reale mostrando lo stato dell'elaborazione, una barra di progresso, messaggi di log e contatori per i diversi stati trovati (Aperta, Chiusa, In Lavorazione, ecc.).
-6.  Scrive i risultati ottenuti (Stato, Protocollo, Provvedimento, Data, Note) nelle colonne corrispondenti del file Excel originale, accanto a ciascun codice di ricerca.
+- **Interfaccia Moderna**: Design pulito e professionale con PyQt6
+- **Splash Screen**: Barra di caricamento elegante con animazioni fluide
+- **Web Automation**: Integrazione con browser per controllo spedizioni
+- **Gestione Excel**: Lettura e scrittura automatica di file Excel
+- **Threading**: Operazioni asincrone per UI reattiva
+- **Stato Machine**: Gestione avanzata degli stati dell'applicazione
 
-L'applicazione è stata refactoring da un singolo script a una struttura multi-file per migliorare l'organizzazione, la leggibilità e la manutenibilità del codice.
+## 📦 Installazione
 
-## 🧹 Pulizia del Progetto
+### Prerequisiti
+- Python 3.8+
+- Windows 10/11
 
-Il progetto è stato recentemente pulito e ottimizzato:
-
-- ✅ **Rimossi tutti i print di debug** dal codice sorgente
-- ✅ **Eliminati file temporanei** (__pycache__, log files)
-- ✅ **Organizzata la documentazione** nella cartella `docs/`
-- ✅ **Aggiunta configurazione per linting** e formattazione del codice
-- ✅ **Creati file di test** per i moduli principali
-- ✅ **Configurato logging strutturato** con rotazione automatica
-- ✅ **Aggiunto Makefile** per automatizzare le operazioni comuni
-- ✅ **Rimossa dipendenza non utilizzata** (qtawesome)
-
-## Struttura del Progetto
-
-Il codice è stato suddiviso nei seguenti file, ognuno con una responsabilità specifica:
-
-* **`README.md`**
-    * **Contenuto:** Questo file. Fornisce una panoramica del progetto, la sua struttura e come eseguirlo.
-    * **Scopo:** Documentazione principale per chiunque interagisca con il progetto.
-
-* **`main.py`**
-    * **Contenuto:** Punto di ingresso principale dell'applicazione. Contiene solo il blocco `if __name__ == '__main__':`.
-    * **Scopo:** Inizializza l'oggetto `QtWidgets.QApplication`, importa la classe `App` da `main_window.py`, crea l'istanza della finestra principale, la visualizza (`window.show()`) e avvia il ciclo degli eventi (`app.exec()`). Isola la logica di avvio dell'applicazione.
-
-* **`main_window/`**
-    * **Contenuto:** Package modulare contenente tutti i componenti dell'applicazione.
-    * **Scopo:** Organizza il codice in moduli specializzati per migliorare la manutenibilità.
-
-* **`config.py`**
-    * **Contenuto:** Tutte le costanti globali utilizzate nell'applicazione.
-    * **Scopo:** Centralizza valori di configurazione come:
-        * Parametri per le operazioni web (es. `MAX_RETRIES`, `FETCH_TIMEOUT_MS`).
-        * Selettori CSS/JavaScript per l'estrazione dei dati dalla pagina web.
-        * Codici colore per l'interfaccia utente e i badge di stato.
-        * Nomi delle colonne Excel target (per lettura e scrittura).
-        * Indici di colonna di fallback.
-        Questo facilita la modifica di questi valori senza dover cercare nel codice principale e migliora la leggibilità evitando stringhe/numeri "magici".
-
-* **`requirements.txt`**
-    * **Contenuto:** Elenco delle dipendenze Python necessarie per eseguire il progetto.
-    * **Scopo:** Permette una facile installazione delle librerie richieste tramite `pip install -r requirements.txt`.
-
-* **`docs/`**
-    * **Contenuto:** Documentazione del progetto (report di refactoring, guide, etc.).
-    * **Scopo:** Organizza tutti i file di documentazione in un'unica cartella.
-
-* **`tests/`**
-    * **Contenuto:** Test unitari e di integrazione per i moduli principali.
-    * **Scopo:** Garantisce la qualità del codice e facilita il debugging.
-
-* **`logging_config.py`**
-    * **Contenuto:** Configurazione centralizzata per il logging dell'applicazione.
-    * **Scopo:** Gestisce i log con rotazione automatica e formattazione strutturata.
-
-* **`pyproject.toml`**
-    * **Contenuto:** Configurazione del progetto Python con impostazioni per linting e testing.
-    * **Scopo:** Standardizza la configurazione per strumenti di sviluppo.
-
-* **`Makefile`**
-    * **Contenuto:** Comandi automatizzati per operazioni comuni del progetto.
-    * **Scopo:** Semplifica lo sviluppo e il deployment.
-
-## Requisiti
-
-Per eseguire questa applicazione, è necessario avere installato:
-
-* **Windows 10 o superiore** (64-bit)
-* Python 3.8 o superiore
-* Le seguenti librerie Python:
-    * `PyQt6`
-    * `PyQt6-WebEngine`
-    * `openpyxl`
-
-### Requisiti di Sistema
-* **Sistema Operativo**: Windows 10/11 (64-bit)
-* **RAM**: Minimo 4GB, Consigliato 8GB
-* **Spazio Disco**: Minimo 500MB liberi
-* **Risoluzione**: Minimo 1024x768
-* **Browser**: Chrome o Edge (per l'automazione web)
-
-È consigliabile installare le dipendenze usando `pip`:
+### Dipendenze
 ```bash
 pip install -r requirements.txt
 ```
 
-## 🚀 Sviluppo
-
-### Installazione dipendenze di sviluppo
+### Esecuzione
 ```bash
-make install-dev
+python main.py
 ```
 
-### Esecuzione test
-```bash
-make test
+## 🎯 Splash Screen
+
+L'applicazione include una splash screen moderna con:
+- **Barra di progresso** animata (5 secondi minimi)
+- **Testi dinamici** che cambiano durante il caricamento
+- **Design pulito** con colori DHL
+- **Transizioni fluide** tra splash e applicazione principale
+
+## 🏗️ Struttura del Progetto
+
+```
+ControlloStatoNSIS/
+├── main.py                 # Entry point dell'applicazione
+├── splash_screen_simple.py # Splash screen moderna
+├── config.py              # Configurazione dell'applicazione
+├── dati.xlsx              # File Excel per i dati
+├── requirements.txt       # Dipendenze Python
+├── main_window/           # Moduli dell'interfaccia principale
+│   ├── app.py            # Applicazione principale
+│   ├── ui_manager.py     # Gestione UI
+│   ├── state_manager.py  # Gestione stati
+│   ├── excel_handler.py  # Gestione Excel
+│   ├── web_automation.py # Automazione web
+│   └── worker.py         # Thread worker
+├── assets/               # Risorse grafiche
+├── fonts/               # Font personalizzati
+├── icons/               # Icone SVG
+└── dist/                # Eseguibile compilato
+    └── ControlloStatoNSIS.exe
 ```
 
-### Formattazione codice
+## 🔧 Compilazione
+
+### Creazione Eseguibile
 ```bash
-make format
+python -m PyInstaller --onefile --windowed --icon=icon.ico --name="ControlloStatoNSIS" --add-data="assets;assets" --add-data="fonts;fonts" --add-data="icons;icons" main.py
 ```
 
-### Controllo qualità codice
-```bash
-make lint
-```
+### Distribuzione
+L'eseguibile è **portable** e può essere distribuito direttamente:
+- Copia la cartella `dist/`
+- Includi i file necessari (assets, fonts, icons, dati.xlsx, config.py)
+- L'applicazione funziona senza installazione
 
-### Pulizia progetto
-```bash
-make clean
-```
+## 🎨 Design
 
-### Esecuzione applicazione
-```bash
-make run
-```
+### Colori Principali
+- **DHL Yellow**: #FFB800 (accent color)
+- **Bianco**: #FFFFFF (background)
+- **Grigio Scuro**: #212529 (text)
+- **Grigio Chiaro**: #F8F9FA (progress background)
 
-### Creazione installer Windows
-```bash
-make installer
-```
-**Nota**: Richiede Inno Setup 6 installato.
+### Splash Screen
+- **Dimensioni**: 400x250 pixel
+- **Animazione**: 5 secondi con easing curve
+- **Testi**: 7 step di caricamento dinamici
+- **Progress Bar**: Gradiente giallo con bordi arrotondati
 
-## 📝 Logging
+## 📝 Licenza
 
-L'applicazione utilizza un sistema di logging strutturato:
-- I log vengono salvati in `%APPDATA%\ControlloStatoNSIS\logs\` con timestamp
-- Rotazione automatica dei file di log
-- Configurazione centralizzata in `logging_config.py`
+Progetto sviluppato da ST - Made with ❤️
 
-## 🪟 Configurazione Windows
+## 🤝 Contributi
 
-L'applicazione è ottimizzata per Windows con:
-- **High DPI Awareness** per schermi ad alta risoluzione
-- **Integrazione con AppData** per configurazioni e log
-- **Supporto per Windows 10/11** con temi nativi
-- **Installer professionale** con Inno Setup
+Per contribuire al progetto:
+1. Fork del repository
+2. Crea un branch per la feature
+3. Commit delle modifiche
+4. Push al branch
+5. Crea una Pull Request
+
+## 📞 Supporto
+
+Per supporto tecnico o segnalazione bug, contatta lo sviluppatore.
