@@ -71,7 +71,6 @@ class Worker(QtCore.QObject):
     def run(self):
         """Main execution logic for the worker thread."""
         try:
-            print("DEBUG: Worker.run() iniziato")
             self._logger.info("Worker thread started")
             self._set_state(AppState.PROCESSING)
             
@@ -82,37 +81,30 @@ class Worker(QtCore.QObject):
             self._finished_emitted_after_stop = False
             
             if not self.codes:
-                print("DEBUG: Nessun codice da processare")
                 self.logUpdate.emit("Nessun codice da processare nel worker.")
                 self._set_state(AppState.COMPLETED)
                 self.finished.emit()
                 return
             
-            print(f"DEBUG: {len(self.codes)} codici da processare")
             self.progress.emit(0, self._total_codes)
             self._current_code_index = 0
             
             if not self._stop_requested:
+                self.statusUpdate.emit("⚙️ Inizializzazione elaborazione...")
                 if self._current_code_index < len(self.codes):
                     code = self.codes[self._current_code_index]
-                    print(f"DEBUG: Elaborazione codice: {code}")
-                    self.statusUpdate.emit(f"Inizio elaborazione per: {code} (1/{self._total_codes})")
-                    print("DEBUG: Richiesta fetch dal web automation...")
+                    self.statusUpdate.emit(f"🚀 Avvio elaborazione codice {code}")
                     self.requestFetch.emit(code)
-                    print("DEBUG: Richiesta fetch inviata")
                 else:
-                    print("DEBUG: Lista codici vuota")
                     self.logUpdate.emit("Lista codici vuota.")
                     self._set_state(AppState.COMPLETED)
                     self.finished.emit()
             else:
-                print("DEBUG: Interrotto prima dell'inizio")
                 self.logUpdate.emit("❌ Interrotto prima dell'inizio.")
                 self._set_state(AppState.IDLE)
                 self.finished.emit()
                 
         except Exception as e:
-            print(f"ERRORE in Worker.run(): {e}")
             import traceback
             traceback.print_exc()
             self.logUpdate.emit(f"❌ Errore nel worker: {e}")
@@ -158,11 +150,11 @@ class Worker(QtCore.QObject):
         # Continue with next code or finish
         if self._current_code_index < self._total_codes:
             next_code = self.codes[self._current_code_index]
-            self.statusUpdate.emit(f"Richiesta fetch per: {next_code} ({self._current_code_index + 1}/{self._total_codes})")
+            self.statusUpdate.emit(f"🌐 Recupero dati per codice {next_code}")
             self.requestFetch.emit(next_code)
         else:
             self.logUpdate.emit("✅ Elaborazione codici completata.")
-            self.statusUpdate.emit("✅ Elaborazione completata.")
+            self.statusUpdate.emit("🎉 Elaborazione completata con successo!")
             self.resultsReady.emit(self._results)
             self._set_state(AppState.COMPLETED)
             self.finished.emit()
@@ -248,28 +240,22 @@ class Worker(QtCore.QObject):
     def _simulate_fetch_result(self, code: str):
         """Simulate fetch result for testing without web automation."""
         try:
-            print(f"DEBUG: _simulate_fetch_result per codice: {code}")
             import random
             
             # Simulate different states
             states = ["APERTA", "CHIUSA", "IN LAVORAZIONE", "ANNULLATA", "INVIATA"]
             simulated_state = random.choice(states)
-            print(f"DEBUG: Stato simulato: {simulated_state}")
             
             # Simulate cells data
             simulated_cells = [
                 "", "", simulated_state, "", "",  # Stato in posizione 2
                 f"PROT-{code}", f"PROV-{code}", "2024-01-01", code, "", f"Note per {code}"
             ]
-            print(f"DEBUG: Celle simulate create: {len(simulated_cells)} elementi")
             
             # Process the simulated result
-            print("DEBUG: Chiamata processFetchedResult...")
             self.processFetchedResult(code, simulated_state, simulated_cells)
-            print("DEBUG: processFetchedResult completato")
             
         except Exception as e:
-            print(f"ERRORE in _simulate_fetch_result: {e}")
             import traceback
             traceback.print_exc()
     

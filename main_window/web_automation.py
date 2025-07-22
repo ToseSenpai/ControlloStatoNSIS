@@ -229,16 +229,12 @@ class WebAutomation(QtCore.QObject):
     
     def _handle_load_timeout(self):
         """Handle page load timeout."""
-        print("DEBUG: Load timeout handler called")
         if self._current_state == AppState.LOADING:
             self._logger.warning("Page load timeout, continuing anyway")
-            print("DEBUG: Page load timeout, continuing anyway")
             self._set_state(AppState.IDLE)
             # Force the page to be considered loaded
             if self._web_page:
                 self._web_page.loadFinished.emit(True)
-        else:
-            print(f"DEBUG: Load timeout but state is {self._current_state}")
     
     def fetch_state_for_code(self, code: str):
         """Fetch state for a specific code."""

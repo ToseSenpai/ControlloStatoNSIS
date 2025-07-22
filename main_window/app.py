@@ -76,22 +76,22 @@ class App(QtWidgets.QWidget):
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
         
-        # Set window background with very subtle gradient for Glassmorphism and rounded corners
+        # Set window background with increased opacity for better visibility
         self.setStyleSheet("""
             QWidget {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-                    stop:0 rgba(248, 250, 252, 0.3),
-                    stop:1 rgba(241, 245, 249, 0.3));
+                    stop:0 rgba(248, 250, 252, 0.6),
+                    stop:1 rgba(241, 245, 249, 0.6));
                 border-radius: 12px;
             }
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-                    stop:0 rgba(248, 250, 252, 0.3),
-                    stop:1 rgba(241, 245, 249, 0.3));
+                    stop:0 rgba(248, 250, 252, 0.6),
+                    stop:1 rgba(241, 245, 249, 0.6));
                 border-radius: 12px;
             }
         """)
-        print("✅ Background sottile applicato per Glassmorphism bilanciato")
+        # Background applied for balanced glassmorphism
         
         # Set font
         if ui_font_family and ui_font_family != 'Arial':
@@ -125,8 +125,8 @@ class App(QtWidgets.QWidget):
         # Create window controls container
         self._window_controls = QtWidgets.QWidget(self)
         self._window_controls.setObjectName("windowControls")
-        self._window_controls.setFixedSize(120, 30)
-        self._window_controls.move(self.width() - 130, 10)
+        self._window_controls.setFixedSize(100, 32)
+        self._window_controls.move(self.width() - 110, 8)
         
         # Ensure controls are on top
         self._window_controls.raise_()
@@ -137,62 +137,69 @@ class App(QtWidgets.QWidget):
         
         # Create layout for controls
         controls_layout = QtWidgets.QHBoxLayout(self._window_controls)
-        controls_layout.setSpacing(8)
-        controls_layout.setContentsMargins(8, 4, 8, 4)
+        controls_layout.setSpacing(4)
+        controls_layout.setContentsMargins(4, 2, 4, 2)
         
         # Minimize button
         self._minimize_btn = QtWidgets.QPushButton("−")
         self._minimize_btn.setObjectName("minimizeButton")
-        self._minimize_btn.setFixedSize(24, 24)
+        self._minimize_btn.setFixedSize(28, 28)
         self._minimize_btn.clicked.connect(self.showMinimized)
         
         # Maximize/Restore button
         self._maximize_btn = QtWidgets.QPushButton("□")
         self._maximize_btn.setObjectName("maximizeButton")
-        self._maximize_btn.setFixedSize(24, 24)
+        self._maximize_btn.setFixedSize(28, 28)
         self._maximize_btn.clicked.connect(self._toggle_maximize)
         
         # Close button
         self._close_btn = QtWidgets.QPushButton("×")
         self._close_btn.setObjectName("closeButton")
-        self._close_btn.setFixedSize(24, 24)
+        self._close_btn.setFixedSize(28, 28)
         self._close_btn.clicked.connect(self.close)
         
         controls_layout.addWidget(self._minimize_btn)
         controls_layout.addWidget(self._maximize_btn)
         controls_layout.addWidget(self._close_btn)
         
-        # Style the controls
+        # Style the controls with modern design
         self._window_controls.setStyleSheet("""
             QWidget#windowControls {
-                background: rgba(255, 255, 255, 0.1);
-                border-radius: 12px;
-                border: 1px solid rgba(255, 255, 255, 0.2);
+                background: transparent;
+                border: none;
             }
             QPushButton#minimizeButton, QPushButton#maximizeButton, QPushButton#closeButton {
                 background: transparent;
                 border: none;
-                color: #495057;
-                font-size: 16px;
-                font-weight: 600;
-                border-radius: 8px;
-                margin: 2px;
-                min-width: 24px;
-                min-height: 24px;
+                color: rgba(255, 255, 255, 0.8);
+                font-size: 14px;
+                font-weight: 500;
+                border-radius: 6px;
+                margin: 0px;
+                min-width: 28px;
+                min-height: 28px;
+                max-width: 28px;
+                max-height: 28px;
             }
             QPushButton#minimizeButton:hover, QPushButton#maximizeButton:hover {
-                background: rgba(255, 255, 255, 0.2);
-                color: #212529;
-                border-radius: 8px;
+                background: rgba(255, 255, 255, 0.15);
+                color: rgba(255, 255, 255, 1.0);
+                border-radius: 6px;
             }
             QPushButton#closeButton:hover {
-                background: rgba(220, 53, 69, 0.8);
+                background: rgba(220, 53, 69, 0.9);
                 color: white;
-                border-radius: 8px;
+                border-radius: 6px;
             }
-            QPushButton#minimizeButton:pressed, QPushButton#maximizeButton:pressed, QPushButton#closeButton:pressed {
-                background: rgba(255, 255, 255, 0.1);
-                border-radius: 8px;
+            QPushButton#minimizeButton:pressed, QPushButton#maximizeButton:pressed {
+                background: rgba(255, 255, 255, 0.25);
+                color: rgba(255, 255, 255, 1.0);
+                border-radius: 6px;
+            }
+            QPushButton#closeButton:pressed {
+                background: rgba(200, 35, 51, 1.0);
+                color: white;
+                border-radius: 6px;
             }
         """)
     
@@ -254,10 +261,10 @@ class App(QtWidgets.QWidget):
         if hasattr(self, '_window_controls'):
             if self._is_maximized:
                 # Position controls in top-right corner when maximized
-                self._window_controls.move(self.width() - 130, 10)
+                self._window_controls.move(self.width() - 110, 8)
             else:
                 # Position controls normally
-                self._window_controls.move(self.width() - 130, 10)
+                self._window_controls.move(self.width() - 110, 8)
     
     def mousePressEvent(self, event):
         """Handle mouse press for window dragging and resizing."""
@@ -265,7 +272,6 @@ class App(QtWidgets.QWidget):
             # Check if we're in a resize area
             edge = self._get_resize_edge(event.pos())
             if edge:
-                print(f"DEBUG: Resize detected - Edge: {edge}, Pos: {event.pos()}")
                 self._resize_edge = edge
                 self._resize_start_pos = event.globalPosition().toPoint()
                 self._resize_start_geometry = self.geometry()
@@ -409,11 +415,8 @@ class App(QtWidgets.QWidget):
     def _setup_web_engine(self):
         """Setup web engine components like in the original working version."""
         try:
-            print("DEBUG: Setup web engine come nel file originale...")
-            
             # Create web view like in original
             self._web_view = QtWebEngineWidgets.QWebEngineView()
-            print("DEBUG: QWebEngineView creato")
             
             # Create page like in original
             from PyQt6.QtWebEngineCore import QWebEnginePage
@@ -421,19 +424,15 @@ class App(QtWidgets.QWidget):
             from .web_automation import WebEnginePage
             page = WebEnginePage(self._web_view)
             self._web_view.setPage(page)
-            print("DEBUG: WebEnginePage personalizzata creata e impostata")
             
             # Set up web automation with the web view
             self._web_automation.setup_web_engine(self._web_view)
-            print("DEBUG: Web automation setup completato")
             
             # Set web view in UI
             self._ui_manager.set_web_view(self._web_view)
-            print("DEBUG: Web view impostato in UI")
             
             # Connect page load signal like in original
             page.loadFinished.connect(self._handle_page_load_finished)
-            print("DEBUG: Segnale loadFinished connesso")
             
             # Load initial URL immediately like in original
             self._web_view.load(QtCore.QUrl("https://www.impresa.gov.it/intro/info/news.html"))
@@ -501,72 +500,45 @@ class App(QtWidgets.QWidget):
     def start_processing(self):
         """Start the processing of NSIS codes."""
         try:
-            print("DEBUG: start_processing chiamato")
-            
             if not self._state_manager.can_start_processing():
-                print("DEBUG: Non può avviare elaborazione in questo stato")
                 self._ui_manager.add_log_message("⚠️ Non è possibile avviare l'elaborazione in questo stato")
                 return
             
-            print("DEBUG: Controllo file Excel...")
             # Check if file is loaded
             if not self._excel_handler.codes:
-                print("DEBUG: Nessun file Excel caricato")
                 self._ui_manager.add_log_message("❌ Nessun file Excel caricato o nessun codice trovato")
                 return
             
-            print(f"DEBUG: {len(self._excel_handler.codes)} codici trovati")
-            print("DEBUG: Transizione a LOADING...")
             # Transition to loading state
             self._state_manager.transition_to(AppState.LOADING)
             
-            print("DEBUG: Creazione Worker...")
             # Create and setup worker
             self._worker = Worker(self._excel_handler.codes)
-            print("DEBUG: Worker creato")
-            
-            print("DEBUG: Creazione QThread...")
             self._worker_thread = QThread()
-            print("DEBUG: QThread creato")
-            
-            print("DEBUG: Spostamento Worker nel thread...")
             self._worker.moveToThread(self._worker_thread)
-            print("DEBUG: Worker spostato nel thread")
             
-            print("DEBUG: Connessione segnali Worker...")
             # Connect worker signals
             self._worker.progress.connect(self._ui_manager.update_progress)
-            self._worker.statusUpdate.connect(self._ui_manager.update_status)
+            self._worker.statusUpdate.connect(self._ui_manager.update_progress_status)
             self._worker.logUpdate.connect(self._ui_manager.add_log_message)
             self._worker.badgeUpdate.connect(self._ui_manager.update_badge)
             self._worker.finished.connect(self._on_worker_finished)
             self._worker.resultsReady.connect(self._on_results_ready)
             self._worker.requestFetch.connect(self._web_automation.fetch_state_for_code)
-            print("DEBUG: Segnali Worker connessi")
             
-            print("DEBUG: Connessione segnali Thread...")
             # Connect thread signals
             self._worker_thread.started.connect(self._worker.run)
             self._worker_thread.finished.connect(self._worker_thread.deleteLater)
-            print("DEBUG: Segnali Thread connessi")
             
-            print("DEBUG: Setup UI per elaborazione...")
             # Start processing
             self._ui_manager.set_processing_state(True)
             self._ui_manager.reset_badges()
             self._ui_manager.add_log_message("🚀 Avvio elaborazione codici...")
-            print("DEBUG: UI setup completato")
             
-            print("DEBUG: Avvio worker thread...")
             self._worker_thread.start()
-            print("DEBUG: Worker thread avviato")
-            
-            print("DEBUG: Transizione a PROCESSING...")
             self._state_manager.transition_to(AppState.PROCESSING)
-            print("DEBUG: start_processing completato con successo")
             
         except Exception as e:
-            print(f"ERRORE in start_processing: {e}")
             import traceback
             traceback.print_exc()
             self._ui_manager.add_log_message(f"❌ Errore avvio elaborazione: {e}")
@@ -594,12 +566,12 @@ class App(QtWidgets.QWidget):
             # Update file path display with nice effects
             self._ui_manager.set_file_path(file_path)
             self._ui_manager.add_log_message(f"✅ Caricati {len(codes)} codici dal file")
-            self._ui_manager.update_status(f"Pronto: {len(codes)} codici da elaborare")
+
         else:
             # Reset file path on error
             self._ui_manager.reset_file_path()
             self._ui_manager.add_log_message(f"❌ Errore caricamento file: {error_msg}")
-            self._ui_manager.update_status("Errore caricamento file")
+
     
     def _on_fetch_completed(self, code: str, state: str, cells: list):
         """Handle completed fetch from web automation."""
@@ -619,10 +591,6 @@ class App(QtWidgets.QWidget):
     
     def _on_results_ready(self, results_list: list):
         """Handle results ready from worker."""
-        self._logger.debug(f"Risultati ricevuti dal worker: {len(results_list)} elementi")
-        for i, result in enumerate(results_list[:3]):  # Log primi 3 risultati
-            self._logger.debug(f"Risultato {i+1}: {result}")
-        
         self._ui_manager.add_log_message(f"📊 Elaborazione completata: {len(results_list)} risultati")
         
         # Save results to Excel
@@ -633,10 +601,10 @@ class App(QtWidgets.QWidget):
             
             if success:
                 self._ui_manager.add_log_message(f"💾 Risultati salvati in: {os.path.basename(output_path)}")
-                self._ui_manager.update_status("✅ Elaborazione completata e salvata")
+    
             else:
                 self._ui_manager.add_log_message(f"❌ Errore salvataggio: {error_msg}")
-                self._ui_manager.update_status("❌ Errore salvataggio risultati")
+    
     
     def _on_worker_finished(self):
         """Handle worker thread finished."""
@@ -659,11 +627,11 @@ class App(QtWidgets.QWidget):
         elif new_state in [AppState.IDLE, AppState.COMPLETED]:
             self._ui_manager.set_processing_state(False)
         elif new_state == AppState.ERROR:
-            self._ui_manager.update_status("❌ Errore applicazione")
+            pass
     
     def _on_web_state_changed(self, new_state: AppState):
         """Handle web automation state change."""
-        self._logger.debug(f"Web automation state: {new_state.value}")
+        pass
     
     def _clear_log(self):
         """Clear the log display."""

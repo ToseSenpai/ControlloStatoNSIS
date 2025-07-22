@@ -14,6 +14,14 @@ from .state_manager import StateManager
 from .web_automation import WebAutomation
 from .worker import Worker
 
+# Import Fluent Widgets for modern components
+try:
+    from qfluentwidgets import ProgressBar, FluentIcon, InfoBar, InfoBarPosition
+    FLUENT_AVAILABLE = True
+except ImportError:
+    FLUENT_AVAILABLE = False
+    print("PyQt6-Fluent-Widgets not available, using fallback components")
+
 # Glassmorphism Design Color Palette (Light Theme)
 COLORS = {
     'bg_primary': '#ffffff',      # Pure white background
@@ -40,11 +48,14 @@ COLORS = {
     'glass_highlight': 'rgba(255, 255, 255, 0.25)', # Glass highlight
     'title_accent': '#0078d4',    # Windows 11 blue accent for titles
     'title_accent_light': '#106ebe',  # Lighter Windows 11 blue for gradients
+    'dhl_yellow': '#FFCC00',      # DHL yellow
+    'dhl_yellow_dark': '#E6B800', # Darker DHL yellow for hover
+    'dhl_red': '#D40511',         # DHL red
 }
 
 # Icon mapping with QtAwesome professional icons - Enhanced
 ICONS = {
-    'play': 'fa5s.rocket',           # Rocket for start
+    'play': 'fa5s.plane',            # Plane for start (DHL style)
     'stop': 'fa5s.power-off',        # Power off for stop
     'trash': 'fa5s.trash-alt',
     'home': 'fa5s.home',
@@ -57,6 +68,8 @@ ICONS = {
     'arrow_right': 'fa5s.arrow-right',
     'rotate': 'fa5s.redo',
     'file': 'fa5s.file-excel',       # Excel file icon
+    'eye_open': 'fa5s.eye',          # Eye open for visible log
+    'eye_closed': 'fa5s.eye-slash',  # Eye closed for hidden log
 }
 
 # Custom UI Components
@@ -73,15 +86,550 @@ class GlassPanel(QtWidgets.QFrame):
             }}
         """)
 
+class Windows11ProgressBar(QtWidgets.QProgressBar):
+    """Windows 11 style progress bar with smooth animations."""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFixedHeight(6)
+        self.setStyleSheet(f"""
+            QProgressBar {{
+                background: rgba(255, 255, 255, 0.1);
+                border: none;
+                border-radius: 3px;
+                text-align: center;
+                color: transparent;
+                margin: 8px 0;
+            }}
+            QProgressBar::chunk {{
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #0078D4,
+                    stop:0.5 #40E0D0,
+                    stop:1 #0078D4);
+                border-radius: 3px;
+                margin: 0px;
+            }}
+        """)
+        
+        # Animation properties
+        self._animation = QtCore.QPropertyAnimation(self, b"value")
+        self._animation.setDuration(300)
+        self._animation.setEasingCurve(QtCore.QEasingCurve.Type.OutCubic)
+
+    def setValue(self, value):
+        """Animate value changes."""
+        self._animation.setStartValue(self.value())
+        self._animation.setEndValue(value)
+        self._animation.start()
+
+class ModernFluentProgressBar(QtWidgets.QWidget):
+    """Modern progress bar with red/yellow gradient and animated truck."""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName("modernFluentProgressBar")
+        self.setFixedHeight(60)
+        
+        # Layout
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(8)
+        
+        # Progress info label with modern styling
+        self._progress_info = QtWidgets.QLabel("0%")
+        self._progress_info.setObjectName("progressInfo")
+        self._progress_info.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self._progress_info.setStyleSheet("""
+            QLabel#progressInfo {
+                color: rgba(255, 255, 255, 0.9);
+                font-size: 14px;
+                font-weight: 700;
+                background: transparent;
+                border: none;
+                padding: 0px;
+                margin: 0px;
+                letter-spacing: 0.5px;
+            }
+        """)
+        
+        # Progress bar container with red/yellow theme
+        self._progress_container = QtWidgets.QWidget()
+        self._progress_container.setObjectName("progressContainer")
+        self._progress_container.setFixedHeight(12)
+        self._progress_container.setStyleSheet("""
+            QWidget#progressContainer {
+                background: rgba(255, 255, 255, 0.1);
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                border-radius: 6px;
+                margin: 0px;
+            }
+        """)
+        
+        # Progress fill widget with red/yellow gradient
+        self._progress_fill = QtWidgets.QWidget(self._progress_container)
+        self._progress_fill.setObjectName("progressFill")
+        self._progress_fill.setFixedHeight(8)
+        self._progress_fill.setStyleSheet("""
+            QWidget#progressFill {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #FF0000,
+                    stop:0.25 #FF4500,
+                    stop:0.5 #FF8C00,
+                    stop:0.75 #FFD700,
+                    stop:1 #FFFF00);
+                border: none;
+                border-radius: 4px;
+                margin: 2px;
+            }
+        """)
+        
+        # Set initial width
+        self._progress_fill.setFixedWidth(0)
+        
+        # Animated truck widget
+        self._truck_widget = QtWidgets.QWidget(self._progress_container)
+        self._truck_widget.setObjectName("truckWidget")
+        self._truck_widget.setFixedSize(20, 16)
+        self._truck_widget.setStyleSheet("""
+            QWidget#truckWidget {
+                background: transparent;
+                border: none;
+            }
+        """)
+        
+        layout.addWidget(self._progress_info)
+        layout.addWidget(self._progress_container)
+        
+        # Animation for smooth progress changes
+        self._width_animation = QtCore.QPropertyAnimation(self._progress_fill, b"minimumWidth")
+        self._width_animation.setDuration(800)
+        self._width_animation.setEasingCurve(QtCore.QEasingCurve.Type.OutQuart)
+        
+        # Truck animation
+        self._truck_animation = QtCore.QPropertyAnimation(self._truck_widget, b"geometry")
+        self._truck_animation.setDuration(2000)
+        self._truck_animation.setLoopCount(-1)
+        self._truck_animation.setEasingCurve(QtCore.QEasingCurve.Type.InOutQuad)
+        
+        # Gradient animation for shimmer effect
+        self._gradient_animation = QtCore.QPropertyAnimation(self._progress_fill, b"styleSheet")
+        self._gradient_animation.setDuration(3000)
+        self._gradient_animation.setLoopCount(-1)
+        self._gradient_animation.setStartValue("""
+            QWidget#progressFill {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #FF0000,
+                    stop:0.25 #FF4500,
+                    stop:0.5 #FF8C00,
+                    stop:0.75 #FFD700,
+                    stop:1 #FFFF00);
+                border: none;
+                border-radius: 4px;
+                margin: 2px;
+            }
+        """)
+        self._gradient_animation.setEndValue("""
+            QWidget#progressFill {
+                background: qlineargradient(x1:1, y1:0, x2:0, y2:0,
+                    stop:0 #FF0000,
+                    stop:0.25 #FF4500,
+                    stop:0.5 #FF8C00,
+                    stop:0.75 #FFD700,
+                    stop:1 #FFFF00);
+                border: none;
+                border-radius: 4px;
+                margin: 2px;
+            }
+        """)
+        
+        # Start animations
+        self._gradient_animation.start()
+        
+        # Current progress
+        self._current_progress = 0
+        self._max_progress = 100
+        
+        # Truck position
+        self._truck_x = 0
+    
+    def setMaximum(self, maximum):
+        """Set maximum progress value."""
+        self._max_progress = maximum
+    
+    def setValue(self, value):
+        """Set progress value with animation."""
+        self._current_progress = value
+        
+        # Calculate percentage and width
+        percentage = int((value / self._max_progress) * 100) if self._max_progress > 0 else 0
+        container_width = self._progress_container.width() - 4  # Account for margins
+        target_width = int((percentage / 100) * container_width)
+        
+        # Update info label
+        self._progress_info.setText(f"{percentage}%")
+        
+        # Animate width change
+        self._width_animation.setStartValue(self._progress_fill.width())
+        self._width_animation.setEndValue(target_width)
+        self._width_animation.start()
+        
+        # Update truck animation
+        self._update_truck_animation()
+    
+    def _update_truck_animation(self):
+        """Update truck animation based on current progress."""
+        if self._max_progress > 0:
+            percentage = (self._current_progress / self._max_progress) * 100
+            container_width = self._progress_container.width() - 4
+            max_truck_x = container_width - 20  # Truck width
+            
+            # Set truck animation with proper positioning
+            start_rect = QtCore.QRect(2, 2, 20, 16)
+            end_rect = QtCore.QRect(max_truck_x, 2, 20, 16)
+            
+            self._truck_animation.setStartValue(start_rect)
+            self._truck_animation.setEndValue(end_rect)
+            self._truck_animation.start()
+            
+            # Ensure truck is visible and on top
+            self._truck_widget.raise_()
+            self._truck_widget.show()
+    
+    def paintEvent(self, event):
+        """Custom paint event to draw the animated truck."""
+        super().paintEvent(event)
+        
+        # Only paint truck if this is the truck widget
+        if self.objectName() == "truckWidget":
+            painter = QtGui.QPainter(self)
+            painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+            
+            # Draw truck body (larger and more visible)
+            truck_rect = self.rect()
+            painter.fillRect(truck_rect, QtGui.QColor(255, 255, 255))
+            
+            # Draw truck outline
+            painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
+            painter.drawRect(truck_rect)
+            
+            # Draw truck cabin
+            cabin_rect = QtCore.QRect(12, 2, 8, 8)
+            painter.fillRect(cabin_rect, QtGui.QColor(200, 200, 200))
+            painter.drawRect(cabin_rect)
+            
+            # Draw wheels (larger and more visible)
+            wheel_rect1 = QtCore.QRect(3, 10, 5, 5)
+            wheel_rect2 = QtCore.QRect(12, 10, 5, 5)
+            painter.fillEllipse(wheel_rect1, QtGui.QColor(0, 0, 0))
+            painter.fillEllipse(wheel_rect2, QtGui.QColor(0, 0, 0))
+            
+            # Draw wheel details
+            painter.setPen(QtGui.QPen(QtGui.QColor(255, 255, 255), 1))
+            painter.drawEllipse(wheel_rect1)
+            painter.drawEllipse(wheel_rect2)
+    
+    def resizeEvent(self, event):
+        """Handle resize events to update progress bar width."""
+        super().resizeEvent(event)
+        # Update progress fill width when container is resized
+        if self._max_progress > 0:
+            percentage = (self._current_progress / self._max_progress) * 100
+            container_width = self._progress_container.width() - 4
+            target_width = int((percentage / 100) * container_width)
+            self._progress_fill.setFixedWidth(target_width)
+            self._update_truck_animation()
+    
+    def stop_animation(self):
+        """Stop all animations."""
+        self._gradient_animation.stop()
+        self._truck_animation.stop()
+
+class CentralProgressOverlay(QtWidgets.QWidget):
+    """Central progress overlay with beautiful animations."""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName("centralProgressOverlay")
+        self.setFixedSize(400, 200)
+        
+        # Layout
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(16)
+        
+        # Title with icon
+        self._title_label = QtWidgets.QLabel("⚡ Elaborazione in Corso")
+        self._title_label.setObjectName("overlayTitle")
+        self._title_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self._title_label.setStyleSheet("""
+            QLabel#overlayTitle {
+                color: rgba(255, 255, 255, 0.95);
+                font-size: 18px;
+                font-weight: 700;
+                background: transparent;
+                border: none;
+                padding: 0px;
+                margin: 0px;
+                letter-spacing: 0.8px;
+            }
+        """)
+        
+        # Progress bar
+        self._progress_bar = ModernFluentProgressBar()
+        
+        # Status text
+        self._status_label = QtWidgets.QLabel("Inizializzazione...")
+        self._status_label.setObjectName("overlayStatus")
+        self._status_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self._status_label.setStyleSheet("""
+            QLabel#overlayStatus {
+                color: rgba(255, 255, 255, 0.7);
+                font-size: 12px;
+                font-weight: 500;
+                background: transparent;
+                border: none;
+                padding: 0px;
+                margin: 0px;
+            }
+        """)
+        
+        layout.addWidget(self._title_label)
+        layout.addWidget(self._progress_bar)
+        layout.addWidget(self._status_label)
+        
+        # Set up the glassmorphism background
+        self.setStyleSheet("""
+            QWidget#centralProgressOverlay {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 rgba(0, 0, 0, 0.8),
+                    stop:1 rgba(0, 0, 0, 0.7));
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 20px;
+            }
+        """)
+        
+        # Animations
+        self._fade_in_animation = QtCore.QPropertyAnimation(self, b"windowOpacity")
+        self._fade_in_animation.setDuration(500)
+        self._fade_in_animation.setStartValue(0.0)
+        self._fade_in_animation.setEndValue(1.0)
+        self._fade_in_animation.setEasingCurve(QtCore.QEasingCurve.Type.OutCubic)
+        
+        self._fade_out_animation = QtCore.QPropertyAnimation(self, b"windowOpacity")
+        self._fade_out_animation.setDuration(300)
+        self._fade_out_animation.setStartValue(1.0)
+        self._fade_out_animation.setEndValue(0.0)
+        self._fade_out_animation.setEasingCurve(QtCore.QEasingCurve.Type.InCubic)
+        
+        # Scale animation for entrance
+        self._scale_animation = QtCore.QPropertyAnimation(self, b"geometry")
+        self._scale_animation.setDuration(400)
+        self._scale_animation.setEasingCurve(QtCore.QEasingCurve.Type.OutBack)
+        
+        # Initially hidden
+        self.hide()
+    
+    def show_overlay(self):
+        """Show overlay with beautiful entrance animation."""
+        # Center the overlay on parent
+        if self.parent():
+            parent_rect = self.parent().rect()
+            x = parent_rect.center().x() - self.width() // 2
+            y = parent_rect.center().y() - self.height() // 2
+            self.move(x, y)
+        
+        # Start scale animation from smaller size
+        start_rect = self.geometry()
+        start_rect.setSize(start_rect.size() * 0.8)
+        start_rect.moveCenter(self.geometry().center())
+        
+        self._scale_animation.setStartValue(start_rect)
+        self._scale_animation.setEndValue(self.geometry())
+        
+        # Hide web view and navigation controls if they exist
+        if hasattr(self.parent(), '_ui_manager'):
+            ui_manager = self.parent()._ui_manager
+            if hasattr(ui_manager, '_web_view_placeholder'):
+                ui_manager._web_view_placeholder.hide()
+            # Hide navigation container (contains back, forward, reload buttons and log toggle)
+            if hasattr(ui_manager, '_back_btn') and ui_manager._back_btn.parent():
+                ui_manager._back_btn.parent().hide()
+            # Hide web title (Browser NSIS)
+            if hasattr(ui_manager, '_log_text') and ui_manager._log_text.parent():
+                # Find the web title by looking at siblings
+                parent_layout = ui_manager._log_text.parent().layout()
+                if parent_layout:
+                    for i in range(parent_layout.count()):
+                        widget = parent_layout.itemAt(i).widget()
+                        if widget and hasattr(widget, 'text') and "Browser NSIS" in widget.text():
+                            widget.hide()
+                            break
+        
+        # Ensure it's on top
+        self.raise_()
+        self.show()
+        self._fade_in_animation.start()
+        self._scale_animation.start()
+    
+    def hide_overlay(self):
+        """Hide overlay with fade out animation."""
+        self._fade_out_animation.start()
+        self._fade_out_animation.finished.connect(self._on_hide_finished)
+    
+    def _on_hide_finished(self):
+        """Called when hide animation is finished."""
+        self.hide()
+        # Show web view and navigation controls again
+        if hasattr(self.parent(), '_ui_manager'):
+            ui_manager = self.parent()._ui_manager
+            if hasattr(ui_manager, '_web_view_placeholder'):
+                ui_manager._web_view_placeholder.show()
+            # Show navigation container (contains back, forward, reload buttons and log toggle)
+            if hasattr(ui_manager, '_back_btn') and ui_manager._back_btn.parent():
+                ui_manager._back_btn.parent().show()
+            # Show web title (Browser NSIS)
+            if hasattr(ui_manager, '_log_text') and ui_manager._log_text.parent():
+                # Find the web title by looking at siblings
+                parent_layout = ui_manager._log_text.parent().layout()
+                if parent_layout:
+                    for i in range(parent_layout.count()):
+                        widget = parent_layout.itemAt(i).widget()
+                        if widget and hasattr(widget, 'text') and "Browser NSIS" in widget.text():
+                            widget.show()
+                            break
+    
+    def set_progress(self, current: int, maximum: int):
+        """Set progress with animation."""
+        self._progress_bar.setMaximum(maximum)
+        self._progress_bar.setValue(current)
+    
+    def set_status(self, status: str):
+        """Set status text."""
+        self._status_label.setText(status)
+    
+    def stop_animations(self):
+        """Stop all animations."""
+        self._progress_bar.stop_animation()
+
+class Windows11StatusDisplay(QtWidgets.QWidget):
+    """Windows 11 style status display with modern animations."""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName("windows11StatusDisplay")
+        self.setFixedHeight(60)
+        
+        # Layout
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(4)
+        
+        # Status icon with animation
+        self._status_icon = QtWidgets.QLabel("⚡")
+        self._status_icon.setObjectName("statusIcon")
+        self._status_icon.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self._status_icon.setStyleSheet("""
+            QLabel#statusIcon {
+                color: #0078D4;
+                font-size: 20px;
+                background: transparent;
+                border: none;
+                padding: 0px;
+                margin: 0px;
+            }
+        """)
+        
+        # Status text
+        self._status_text = QtWidgets.QLabel("Pronto per l'elaborazione")
+        self._status_text.setObjectName("statusText")
+        self._status_text.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self._status_text.setStyleSheet("""
+            QLabel#statusText {
+                color: rgba(255, 255, 255, 0.8);
+                font-size: 12px;
+                font-weight: 500;
+                background: transparent;
+                border: none;
+                padding: 0px;
+                margin: 0px;
+            }
+        """)
+        
+        # Progress info
+        self._progress_info = QtWidgets.QLabel("")
+        self._progress_info.setObjectName("progressInfo")
+        self._progress_info.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self._progress_info.setStyleSheet("""
+            QLabel#progressInfo {
+                color: rgba(255, 255, 255, 0.6);
+                font-size: 10px;
+                font-weight: 400;
+                background: transparent;
+                border: none;
+                padding: 0px;
+                margin: 0px;
+            }
+        """)
+        
+        layout.addWidget(self._status_icon)
+        layout.addWidget(self._status_text)
+        layout.addWidget(self._progress_info)
+        
+        # Animation for icon
+        self._icon_animation = QtCore.QPropertyAnimation(self._status_icon, b"styleSheet")
+        self._icon_animation.setDuration(1000)
+        self._icon_animation.setLoopCount(-1)
+        self._icon_animation.setStartValue("""
+            QLabel#statusIcon {
+                color: #0078D4;
+                font-size: 20px;
+                background: transparent;
+                border: none;
+                padding: 0px;
+                margin: 0px;
+            }
+        """)
+        self._icon_animation.setEndValue("""
+            QLabel#statusIcon {
+                color: #40E0D0;
+                font-size: 22px;
+                background: transparent;
+                border: none;
+                padding: 0px;
+                margin: 0px;
+            }
+        """)
+    
+    def set_status(self, status: str, icon: str = "⚡"):
+        """Set status with animation."""
+        self._status_text.setText(status)
+        self._status_icon.setText(icon)
+        
+        # Start icon animation
+        self._icon_animation.start()
+    
+    def set_progress_info(self, info: str):
+        """Set progress information."""
+        self._progress_info.setText(info)
+    
+    def stop_animation(self):
+        """Stop icon animation."""
+        self._icon_animation.stop()
+        self._status_icon.setStyleSheet("""
+            QLabel#statusIcon {
+                color: #0078D4;
+                font-size: 20px;
+                background: transparent;
+                border: none;
+                padding: 0px;
+                margin: 0px;
+            }
+        """)
+
 class ModernProgressBar(QtWidgets.QProgressBar):
     """Modern liquid glass progress bar."""
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setStyleSheet(f"""
             QProgressBar {{
-                background: {COLORS['glass_white']};
-                border: 1px solid {COLORS['border']};
-                border-radius: 12px;
+                background: transparent;
+                border: none;
                 text-align: center;
                 color: {COLORS['text_primary']};
                 font-size: 12px;
@@ -330,6 +878,54 @@ class ModernButton(QtWidgets.QPushButton):
                     background: {COLORS['text_muted']};
                     color: {COLORS['bg_secondary']};
                 }}
+            """,
+            "dhl": f"""
+                QPushButton#modernButton_dhl {{
+                    background: {COLORS['dhl_yellow']};
+                    color: white;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 12px;
+                    font-weight: 700;
+                    padding: 8px 16px;
+                    min-height: 32px;
+                }}
+                QPushButton#modernButton_dhl:hover {{
+                    background: {COLORS['dhl_yellow_dark']};
+                    border-radius: 8px;
+                }}
+                QPushButton#modernButton_dhl:pressed {{
+                    background: {COLORS['dhl_yellow']};
+                    border-radius: 8px;
+                }}
+                QPushButton#modernButton_dhl:disabled {{
+                    background: {COLORS['text_muted']};
+                    color: {COLORS['bg_secondary']};
+                }}
+            """,
+            "dhl_red": f"""
+                QPushButton#modernButton_dhl_red {{
+                    background: {COLORS['dhl_red']};
+                    color: white;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 12px;
+                    font-weight: 700;
+                    padding: 8px 16px;
+                    min-height: 32px;
+                }}
+                QPushButton#modernButton_dhl_red:hover {{
+                    background: #B0040E;
+                    border-radius: 8px;
+                }}
+                QPushButton#modernButton_dhl_red:pressed {{
+                    background: {COLORS['dhl_red']};
+                    border-radius: 8px;
+                }}
+                QPushButton#modernButton_dhl_red:disabled {{
+                    background: {COLORS['text_muted']};
+                    color: {COLORS['bg_secondary']};
+                }}
             """
         }
         
@@ -352,8 +948,8 @@ class ModernButton(QtWidgets.QPushButton):
         """Load QtAwesome icon for button."""
         try:
             # Choose color based on button type
-            if button_type in ["primary", "success", "danger"]:
-                icon_color = COLORS['bg_primary']  # White for filled buttons
+            if button_type in ["primary", "success", "danger", "dhl", "dhl_red"]:
+                icon_color = "white"  # White for filled buttons including DHL
             else:
                 icon_color = COLORS['text_secondary']  # Gray for outline buttons
             
@@ -402,23 +998,32 @@ class WebNavButton(QtWidgets.QPushButton):
             self.setIcon(icon)
         except Exception as e:
             pass  # Fallback to text only
+    
+    def get_qtawesome_icon(self, icon_name: str):
+        """Get QtAwesome icon without setting it."""
+        try:
+            return qta.icon(icon_name, color=COLORS['text_primary'])
+        except Exception as e:
+            return None
 
 class SignatureLabel(QtWidgets.QLabel):
-    """Discrete signature label for the application."""
+    """Simple signature label with maximum contrast."""
     def __init__(self, parent=None):
         super().__init__("Made with ❤️ by ST", parent)
         self.setObjectName("signatureLabel")
+
+        self.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.setStyleSheet(f"""
             QLabel#signatureLabel {{
-                color: {COLORS['signature']};
-                font-size: 8px;
-                font-weight: 400;
-                padding: 4px 8px;
                 background: transparent;
+                color: rgba(255, 255, 255, 0.8);
+                font-size: 10px;
+                font-weight: 600;
+                padding: 0px;
                 border: none;
+                border-radius: 0px;
             }}
         """)
-        self.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight | QtCore.Qt.AlignmentFlag.AlignTop)
 
 class SpinnerWidget(QtWidgets.QWidget):
     """Custom spinner widget for loading states."""
@@ -429,112 +1034,103 @@ class SpinnerWidget(QtWidgets.QWidget):
     def stopAnimation(self): self.hide()
     def setColor(self, color): pass
 
-class RoundedWebContainer(QtWidgets.QWidget):
-    """Container widget that forces rounded corners on QWebEngineView using aggressive masking."""
+class FluentWebContainer(QtWidgets.QWidget):
+    """Modern Fluent Design container for web view with elegant styling."""
     
-    def __init__(self, web_view: QtWidgets.QWidget, radius: int = 12, parent=None):
+    def __init__(self, web_view: QtWidgets.QWidget, parent=None):
         super().__init__(parent)
         self._web_view = web_view
-        self._radius = radius
         
-        # Setup layout with padding for shadow
+        # Setup layout with elegant padding
         layout = QtWidgets.QVBoxLayout(self)
-        layout.setContentsMargins(4, 4, 4, 4)  # Padding for shadow effect
+        layout.setContentsMargins(8, 8, 8, 8)  # Elegant padding
+        layout.setSpacing(0)
         layout.addWidget(web_view)
         
-        # Apply aggressive styling with pronounced border (removed clip-path)
-        self.setStyleSheet(f"""
-            QWidget {{
-                background: rgba(255, 255, 255, 0.4);
-                border: 3px solid rgba(255, 255, 255, 0.8);
-                border-radius: {radius}px;
-            }}
+        # Apply clean, modern styling
+        self.setStyleSheet("""
+            QWidget {
+                background: rgba(255, 255, 255, 0.95);
+                border: none;
+                border-radius: 16px;
+            }
+            QWebEngineView {
+                background: transparent;
+                border: none;
+                border-radius: 12px;
+            }
         """)
         
-        # Apply rounded corner mask immediately
+        # Apply rounded corner mask
         self._apply_rounded_mask()
         
         # Force mask update after widget is shown
         QtCore.QTimer.singleShot(100, self._apply_rounded_mask)
     
     def _apply_rounded_mask(self):
-        """Apply rounded corner mask to the container with aggressive approach."""
+        """Apply rounded corner mask to the container."""
         try:
-            # Create a rounded rectangle path with larger radius to hide sharp corners
+            # Create rounded mask for container
             path = QtGui.QPainterPath()
             rect = self.rect()
             rect_f = QtCore.QRectF(rect)
-            
-            # Use a slightly larger radius to ensure sharp corners are completely hidden
-            effective_radius = self._radius + 2
-            path.addRoundedRect(rect_f, effective_radius, effective_radius)
+            path.addRoundedRect(rect_f, 16, 16)
             
             # Create and apply the mask
             mask = QtGui.QRegion(path.toFillPolygon().toPolygon())
             self.setMask(mask)
             
-            # Also apply mask to the web view itself with even more aggressive masking
+            # Apply rounded mask to web view
             if hasattr(self._web_view, 'setMask'):
-                # Create a slightly smaller mask for the web view to ensure it's fully contained
                 web_rect = self._web_view.rect()
                 web_rect_f = QtCore.QRectF(web_rect)
                 web_path = QtGui.QPainterPath()
-                web_path.addRoundedRect(web_rect_f, effective_radius - 1, effective_radius - 1)
+                web_path.addRoundedRect(web_rect_f, 12, 12)
                 web_mask = QtGui.QRegion(web_path.toFillPolygon().toPolygon())
                 self._web_view.setMask(web_mask)
                 
         except Exception as e:
-            print(f"Mask application error: {e}")
+            pass  # Fallback to no mask
     
     def resizeEvent(self, event):
-        """Override resize event to update mask."""
+        """Handle resize events to update masks."""
         super().resizeEvent(event)
         QtCore.QTimer.singleShot(10, self._apply_rounded_mask)
     
     def showEvent(self, event):
-        """Override show event to ensure mask is applied."""
+        """Handle show events to ensure masks are applied."""
         super().showEvent(event)
         QtCore.QTimer.singleShot(50, self._apply_rounded_mask)
     
     def paintEvent(self, event):
-        """Custom paint event to add elegant shadow effect."""
+        """Custom paint event with clean, modern design."""
         painter = QtGui.QPainter(self)
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
         
-        # Create shadow effect
-        shadow_color = QtGui.QColor(0, 0, 0, 50)
-        shadow_offset = 4
+        # Create rounded rectangle path
+        rect = self.rect()
+        rect_f = QtCore.QRectF(rect)
+        path = QtGui.QPainterPath()
+        path.addRoundedRect(rect_f, 16, 16)
+        
+        # Draw subtle shadow for depth
+        shadow_color = QtGui.QColor(0, 0, 0, 15)
+        shadow_offset = 2
         
         # Draw shadow
-        shadow_rect = self.rect().adjusted(shadow_offset, shadow_offset, shadow_offset, shadow_offset)
+        shadow_rect = rect.adjusted(shadow_offset, shadow_offset, shadow_offset, shadow_offset)
+        shadow_rect_f = QtCore.QRectF(shadow_rect)
         shadow_path = QtGui.QPainterPath()
-        shadow_path.addRoundedRect(QtCore.QRectF(shadow_rect), self._radius, self._radius)
+        shadow_path.addRoundedRect(shadow_rect_f, 16, 16)
         painter.fillPath(shadow_path, shadow_color)
         
-        # Draw main container
-        main_rect = self.rect()
-        main_path = QtGui.QPainterPath()
-        main_path.addRoundedRect(QtCore.QRectF(main_rect), self._radius, self._radius)
+        # Draw main container with clean white background
+        painter.fillPath(path, QtGui.QColor(255, 255, 255, 240))
         
-        # Create gradient background
-        gradient = QtGui.QLinearGradient(0, 0, 0, self.height())
-        gradient.setColorAt(0, QtGui.QColor(255, 255, 255, 50))
-        gradient.setColorAt(1, QtGui.QColor(255, 255, 255, 30))
-        
-        painter.fillPath(main_path, gradient)
-        
-        # Draw border with more pronounced effect
-        border_pen = QtGui.QPen(QtGui.QColor(255, 255, 255, 100), 2.5)
+        # Draw single, elegant border
+        border_pen = QtGui.QPen(QtGui.QColor(200, 200, 200, 180), 1)
         painter.setPen(border_pen)
-        painter.drawPath(main_path)
-        
-        # Draw additional inner border for extra definition
-        inner_rect = self.rect().adjusted(2, 2, -2, -2)
-        inner_path = QtGui.QPainterPath()
-        inner_path.addRoundedRect(QtCore.QRectF(inner_rect), self._radius - 2, self._radius - 2)
-        inner_border_pen = QtGui.QPen(QtGui.QColor(255, 255, 255, 60), 1)
-        painter.setPen(inner_border_pen)
-        painter.drawPath(inner_path)
+        painter.drawPath(path)
 
 class UIManager(QtCore.QObject):
     """Manages UI components with final polished design."""
@@ -589,9 +1185,7 @@ class UIManager(QtCore.QObject):
         main_layout.setSpacing(0)
         main_layout.setContentsMargins(0, 0, 0, 0)
         
-        # Add signature label to bottom-right corner
-        self._signature_label = SignatureLabel(self._parent)
-        self._signature_label.setGeometry(self._parent.width() - 120, self._parent.height() - 30, 110, 20)
+
         
         # Create splitter for better space distribution
         self._splitter = QtWidgets.QSplitter(QtCore.Qt.Orientation.Horizontal)
@@ -621,6 +1215,8 @@ class UIManager(QtCore.QObject):
         # Add splitter to main layout
         main_layout.addWidget(self._splitter)
         
+
+        
         # Initialize responsive behavior
         self._parent.resizeEvent = self._handle_resize_event
 
@@ -646,6 +1242,10 @@ class UIManager(QtCore.QObject):
         
         # Add stretch to push everything to the top
         left_layout.addStretch()
+        
+        # Add signature label at the bottom of left panel
+        self._signature_label = SignatureLabel(self._left_panel)
+        left_layout.addWidget(self._signature_label)
 
     def _create_file_section(self, parent_layout):
         """Create file selection section with elegant design."""
@@ -746,24 +1346,16 @@ class UIManager(QtCore.QObject):
         controls_title = SectionTitle("🎮 Controlli")
         parent_layout.addWidget(controls_title)
         
-        # Main action buttons (primary) with increased spacing
-        button_layout = QtWidgets.QHBoxLayout()
-        button_layout.setSpacing(12)  # Increased spacing between buttons
-        button_layout.setContentsMargins(0, 0, 0, 0)
+        # Create grid layout for 4 equal-sized buttons (2x2)
+        button_grid = QtWidgets.QGridLayout()
+        button_grid.setSpacing(8)  # Consistent spacing between all buttons
+        button_grid.setContentsMargins(0, 0, 0, 0)
         
-        # Start button with QtAwesome icon
-        self._start_button = ModernButton("Avvia", "success", ICONS['play'])
+        # Start button with DHL yellow and plane icon
+        self._start_button = ModernButton("Avvia", "dhl", ICONS['play'])
         
-        # Stop button with QtAwesome icon
-        self._stop_button = ModernButton("Stop", "danger", ICONS['stop'])
-        
-        button_layout.addWidget(self._start_button)
-        button_layout.addWidget(self._stop_button)
-        
-        # Secondary buttons (outline style) with increased spacing
-        secondary_layout = QtWidgets.QHBoxLayout()
-        secondary_layout.setSpacing(8)  # Increased spacing between buttons
-        secondary_layout.setContentsMargins(0, 0, 0, 0)
+        # Stop button with DHL red
+        self._stop_button = ModernButton("Stop", "dhl_red", ICONS['stop'])
         
         # Clear log button with QtAwesome icon
         self._clear_log_button = ModernButton("Pulisci", "secondary", ICONS['trash'])
@@ -771,18 +1363,13 @@ class UIManager(QtCore.QObject):
         # Open NSIS button with QtAwesome icon
         self._open_nsis_button = ModernButton("NSIS", "secondary", ICONS['home'])
         
-        secondary_layout.addWidget(self._clear_log_button)
-        secondary_layout.addWidget(self._open_nsis_button)
-        secondary_layout.addStretch()
+        # Add buttons to grid (2x2 layout)
+        button_grid.addWidget(self._start_button, 0, 0)      # Top-left
+        button_grid.addWidget(self._stop_button, 0, 1)       # Top-right
+        button_grid.addWidget(self._clear_log_button, 1, 0)  # Bottom-left
+        button_grid.addWidget(self._open_nsis_button, 1, 1)  # Bottom-right
         
-        # Add spacing between primary and secondary button rows
-        spacer = QtWidgets.QWidget()
-        spacer.setFixedHeight(8)
-        spacer.setStyleSheet("background: transparent; border: none;")
-        
-        parent_layout.addLayout(button_layout)
-        parent_layout.addWidget(spacer)
-        parent_layout.addLayout(secondary_layout)
+        parent_layout.addLayout(button_grid)
 
     def _create_statistics_section(self, parent_layout):
         """Create statistics section with QtAwesome icons."""
@@ -811,6 +1398,8 @@ class UIManager(QtCore.QObject):
             stats_layout.addWidget(statistic_item)
         
         parent_layout.addLayout(stats_layout)
+        
+
 
     def _create_right_panel(self):
         """Create the right panel optimized for web content with glassmorphism."""
@@ -831,41 +1420,17 @@ class UIManager(QtCore.QObject):
         self._create_log_area(right_layout)
 
     def _create_progress_section(self, parent_layout):
-        """Create compact progress section."""
+        """Create central progress overlay."""
+        # Create central progress overlay
+        self._progress_overlay = CentralProgressOverlay(self._parent)
+        
+        # Create a placeholder widget (hidden) for the old progress section
         self._progress_container = QtWidgets.QWidget()
-        self._progress_container.setObjectName("progressContainer")
-        self._progress_container.hide()  # Initially hidden
-        
-        progress_layout = QtWidgets.QVBoxLayout(self._progress_container)
-        progress_layout.setSpacing(8)
-        progress_layout.setContentsMargins(0, 0, 0, 0)
-        
-        # Progress title
-        progress_title = SectionTitle("📊 Progresso Elaborazione")
-        
-        # Status label
-        self._status_label = QtWidgets.QLabel("Pronto per l'elaborazione")
-        self._status_label.setObjectName("statusLabel")
-        self._status_label.setStyleSheet(f"""
-            QLabel#statusLabel {{
-                color: {COLORS['text_primary']};
-                font-size: 11px;
-                padding: 8px;
-                background: {COLORS['glass_white']};
-                border: 1px solid {COLORS['border']};
-                border-radius: 8px;
-                font-weight: 500;
-            }}
-        """)
-        
-        # Progress bar
-        self._progress_bar = ModernProgressBar()
-        
-        progress_layout.addWidget(progress_title)
-        progress_layout.addWidget(self._status_label)
-        progress_layout.addWidget(self._progress_bar)
-        
+        self._progress_container.hide()
         parent_layout.addWidget(self._progress_container)
+        
+        # Ensure overlay is created but hidden initially
+        self._progress_overlay.hide()
 
     def _create_web_area(self, parent_layout):
         """Create web view area with QtAwesome navigation controls and improved spacing."""
@@ -896,10 +1461,39 @@ class UIManager(QtCore.QObject):
         nav_layout.addWidget(self._reload_btn)
         nav_layout.addStretch()
         
-        # Web view placeholder - simplified since styling is now handled by RoundedWebContainer
+        # Log toggle button
+        self._log_toggle_btn = WebNavButton(ICONS['eye_closed'])
+        self._log_toggle_btn.setToolTip("Mostra Log Attività")
+        self._log_toggle_btn.clicked.connect(self._toggle_log_visibility)
+        # Set initial style for hidden state
+        self._log_toggle_btn.setStyleSheet("""
+            QPushButton {
+                background: rgba(255, 255, 255, 0.15);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 8px;
+                color: rgba(255, 255, 255, 0.8);
+                font-size: 12px;
+                font-weight: 500;
+                min-width: 32px;
+                min-height: 32px;
+                max-width: 32px;
+                max-height: 32px;
+            }
+            QPushButton:hover {
+                background: rgba(255, 255, 255, 0.25);
+                border: 1px solid rgba(255, 255, 255, 0.4);
+            }
+            QPushButton:pressed {
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+        """)
+        nav_layout.addWidget(self._log_toggle_btn)
+        
+        # Web view placeholder - simplified since styling is now handled by FluentWebContainer
         self._web_view_placeholder = QtWidgets.QWidget()
         self._web_view_placeholder.setObjectName("webViewPlaceholder")
-        self._web_view_placeholder.setMinimumHeight(300)
+        self._web_view_placeholder.setMinimumHeight(400)  # More space since log is hidden by default
         self._web_view_placeholder.setStyleSheet("""
             QWidget#webViewPlaceholder {
                 background: transparent;
@@ -914,14 +1508,19 @@ class UIManager(QtCore.QObject):
     def _create_log_area(self, parent_layout):
         """Create compact but functional log area."""
         # Log title
-        log_title = SectionTitle("📝 Log Attività")
-        parent_layout.addWidget(log_title)
+        self._log_title = SectionTitle("📝 Log Attività")
+        parent_layout.addWidget(self._log_title)
         
         # Log text area
         self._log_text = QtWidgets.QTextEdit()
         self._log_text.setObjectName("logText")
         self._log_text.setMinimumHeight(120)
         self._log_text.setMaximumHeight(150)
+        
+        # Initialize log as hidden by default
+        self._log_visible = False
+        self._log_title.hide()
+        self._log_text.hide()
         self._log_text.setStyleSheet(f"""
             QTextEdit {{
                 background: rgba(255, 255, 255, 0.25);
@@ -1344,13 +1943,7 @@ class UIManager(QtCore.QObject):
     def _connect_signals(self):
         """Connect UI signals to slots."""
         if self._select_file_button:
-            print("DEBUG: Connessione segnale per pulsante Seleziona File")
             self._select_file_button.clicked.connect(self._on_select_file_clicked)
-            # Verify button is enabled and visible
-            print(f"DEBUG: Pulsante abilitato: {self._select_file_button.isEnabled()}")
-            print(f"DEBUG: Pulsante visibile: {self._select_file_button.isVisible()}")
-        else:
-            print("DEBUG: ERRORE - Pulsante Seleziona File non trovato!")
         
         if self._start_button:
             self._start_button.clicked.connect(self.startButtonClicked.emit)
@@ -1376,8 +1969,6 @@ class UIManager(QtCore.QObject):
     
     def _on_select_file_clicked(self):
         """Handle file selection button click."""
-        print("DEBUG: Pulsante Seleziona File Excel cliccato!")
-        
         file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
             self._parent,
             "Seleziona File Excel",
@@ -1385,21 +1976,90 @@ class UIManager(QtCore.QObject):
             "Excel Files (*.xlsx *.xls);;All Files (*)"
         )
         
-        print(f"DEBUG: File selezionato: {file_path}")
-        
         if file_path:
             self.fileSelected.emit(file_path)
-        else:
-            print("DEBUG: Nessun file selezionato (utente ha annullato)")
+    
+    def _toggle_log_visibility(self):
+        """Toggle log area visibility."""
+        if hasattr(self, '_log_text'):
+            if self._log_visible:
+                # Hide log
+                self._log_text.hide()
+                if hasattr(self, '_log_title'):
+                    self._log_title.hide()
+                self._log_visible = False
+                # Update button icon, tooltip and style
+                icon = self._log_toggle_btn.get_qtawesome_icon(ICONS['eye_closed'])
+                if icon:
+                    self._log_toggle_btn.setIcon(icon)
+                self._log_toggle_btn.setToolTip("Mostra Log Attività")
+                self._log_toggle_btn.setStyleSheet("""
+                    QPushButton {
+                        background: rgba(255, 255, 255, 0.15);
+                        border: 1px solid rgba(255, 255, 255, 0.3);
+                        border-radius: 8px;
+                        color: rgba(255, 255, 255, 0.8);
+                        font-size: 12px;
+                        font-weight: 500;
+                        min-width: 32px;
+                        min-height: 32px;
+                        max-width: 32px;
+                        max-height: 32px;
+                    }
+                    QPushButton:hover {
+                        background: rgba(255, 255, 255, 0.25);
+                        border: 1px solid rgba(255, 255, 255, 0.4);
+                    }
+                    QPushButton:pressed {
+                        background: rgba(255, 255, 255, 0.1);
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                    }
+                """)
+                # Give more space to web view
+                if hasattr(self, '_web_view_placeholder'):
+                    self._web_view_placeholder.setMinimumHeight(400)
+            else:
+                # Show log
+                self._log_text.show()
+                if hasattr(self, '_log_title'):
+                    self._log_title.show()
+                self._log_visible = True
+                # Update button icon, tooltip and restore style
+                icon = self._log_toggle_btn.get_qtawesome_icon(ICONS['eye_open'])
+                if icon:
+                    self._log_toggle_btn.setIcon(icon)
+                self._log_toggle_btn.setToolTip("Nascondi Log Attività")
+                self._log_toggle_btn.setStyleSheet("""
+                    QPushButton {
+                        background: transparent;
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        border-radius: 8px;
+                        color: rgba(255, 255, 255, 0.8);
+                        font-size: 12px;
+                        font-weight: 500;
+                        min-width: 32px;
+                        min-height: 32px;
+                        max-width: 32px;
+                        max-height: 32px;
+                    }
+                    QPushButton:hover {
+                        background: rgba(255, 255, 255, 0.1);
+                        border: 1px solid rgba(255, 255, 255, 0.3);
+                    }
+                    QPushButton:pressed {
+                        background: rgba(255, 255, 255, 0.05);
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                    }
+                """)
+                # Restore web view height
+                if hasattr(self, '_web_view_placeholder'):
+                    self._web_view_placeholder.setMinimumHeight(300)
     
     def set_file_path(self, file_path: str):
         """Show selected file in the elegant display area."""
-        print(f"DEBUG: set_file_path chiamato con: {file_path}")
-        
         if self._file_name_label and self._file_display_area:
             # Show only filename, not full path
             filename = os.path.basename(file_path)
-            print(f"DEBUG: Mostrando file: {filename}")
             
             # Set tooltip with full path
             self._file_display_area.setToolTip(file_path)
@@ -1417,8 +2077,6 @@ class UIManager(QtCore.QObject):
             if self._start_button:
                 self._start_button.setEnabled(True)
                 self._start_button.setText("Avvia Elaborazione")
-        else:
-            print("DEBUG: ERRORE - Elementi file display non trovati!")
     
     def _show_file_display_animation(self):
         """Show the file display area with smooth animation."""
@@ -1521,19 +2179,20 @@ class UIManager(QtCore.QObject):
                 self._start_button.setText("Avvia Elaborazione")
     
     def update_progress(self, current: int, maximum: int):
-        """Update progress bar."""
-        if self._progress_bar:
-            self._progress_bar.setMaximum(maximum)
-            self._progress_bar.setValue(current)
+        """Update central progress overlay with animations."""
+        if hasattr(self, '_progress_overlay'):
+            self._progress_overlay.set_progress(current, maximum)
             
-            # Show progress container when needed
-            if not self._progress_container.isVisible():
-                self._progress_container.show()
+            # Show overlay when needed
+            if not self._progress_overlay.isVisible():
+                self._progress_overlay.show_overlay()
     
-    def update_status(self, message: str):
-        """Update status label."""
-        if self._status_label:
-            self._status_label.setText(message)
+
+    
+    def update_progress_status(self, status: str):
+        """Update progress overlay status."""
+        if hasattr(self, '_progress_overlay'):
+            self._progress_overlay.set_status(status)
     
     def add_log_message(self, message: str):
         """Add message to log with timestamp."""
@@ -1584,12 +2243,38 @@ class UIManager(QtCore.QObject):
         if self._open_nsis_button:
             self._open_nsis_button.setEnabled(not is_processing)
         
-        # Show/hide progress container
-        if self._progress_container:
-            if is_processing and not self._progress_container.isVisible():
-                self._progress_container.show()
-            elif not is_processing and self._progress_container.isVisible():
-                self._progress_container.hide()
+        # Show/hide progress overlay and manage animations
+        if hasattr(self, '_progress_overlay'):
+            if is_processing and not self._progress_overlay.isVisible():
+                self._progress_overlay.show_overlay()
+            elif not is_processing and self._progress_overlay.isVisible():
+                # Stop animations and hide overlay
+                self._progress_overlay.stop_animations()
+                self._progress_overlay.hide_overlay()
+        
+        # Also manage web view and navigation controls visibility
+        if is_processing:
+            # These will be hidden by overlay
+            pass
+        else:
+            # Ensure all web elements are visible when not processing
+            if hasattr(self, '_web_view_placeholder'):
+                self._web_view_placeholder.show()
+            # Show navigation container (contains back, forward, reload buttons and log toggle)
+            if hasattr(self, '_back_btn') and self._back_btn.parent():
+                self._back_btn.parent().show()
+            # Show web title (Browser NSIS)
+            if hasattr(self, '_log_text') and self._log_text.parent():
+                # Find the web title by looking at siblings
+                parent_layout = self._log_text.parent().layout()
+                if parent_layout:
+                    for i in range(parent_layout.count()):
+                        widget = parent_layout.itemAt(i).widget()
+                        if widget and hasattr(widget, 'text') and "Browser NSIS" in widget.text():
+                            widget.show()
+                            break
+    
+
     
     def set_web_view(self, web_view: QtWidgets.QWidget):
         """Set the web view in the placeholder with elegant integration and forced rounded corners."""
@@ -1621,7 +2306,7 @@ class UIManager(QtCore.QObject):
             frame_layout.setContentsMargins(6, 6, 6, 6)
             
             # Create rounded container for the web view with more aggressive masking
-            rounded_container = RoundedWebContainer(web_view, radius=16)
+            rounded_container = FluentWebContainer(web_view)
             frame_layout.addWidget(rounded_container)
             
             # Apply elegant styling to the web view
@@ -1636,6 +2321,12 @@ class UIManager(QtCore.QObject):
                     border: none;
                 }
                 QWebEngineView QWebEnginePage {
+                    background: transparent;
+                }
+                QWebEngineView QWebEnginePage QWidget {
+                    background: transparent;
+                }
+                QWebEngineView QWebEnginePage QWebEngineView {
                     background: transparent;
                 }
                 QWebEngineView QScrollBar:vertical {
@@ -1740,12 +2431,12 @@ class UIManager(QtCore.QObject):
             right_width = total_width - left_width
             self._splitter.setSizes([int(left_width), int(right_width)])
         
-        # Update signature label position
+        # Update signature label position (bottom-left)
         if self._signature_label:
             self._signature_label.setGeometry(
-                self._parent.width() - 120, 
+                10, 
                 self._parent.height() - 30, 
-                110, 
+                140, 
                 20
             )
     

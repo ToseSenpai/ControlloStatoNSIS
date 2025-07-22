@@ -1,4 +1,4 @@
-# Controllo Stato Richiesta NSIS (v1.0)
+# Controllo Stato Richiesta NSIS (v2.0.0)
 
 ## Descrizione
 
@@ -14,6 +14,19 @@ L'applicazione svolge le seguenti funzioni principali:
 
 L'applicazione è stata refactoring da un singolo script a una struttura multi-file per migliorare l'organizzazione, la leggibilità e la manutenibilità del codice.
 
+## 🧹 Pulizia del Progetto
+
+Il progetto è stato recentemente pulito e ottimizzato:
+
+- ✅ **Rimossi tutti i print di debug** dal codice sorgente
+- ✅ **Eliminati file temporanei** (__pycache__, log files)
+- ✅ **Organizzata la documentazione** nella cartella `docs/`
+- ✅ **Aggiunta configurazione per linting** e formattazione del codice
+- ✅ **Creati file di test** per i moduli principali
+- ✅ **Configurato logging strutturato** con rotazione automatica
+- ✅ **Aggiunto Makefile** per automatizzare le operazioni comuni
+- ✅ **Rimossa dipendenza non utilizzata** (qtawesome)
+
 ## Struttura del Progetto
 
 Il codice è stato suddiviso nei seguenti file, ognuno con una responsabilità specifica:
@@ -26,52 +39,116 @@ Il codice è stato suddiviso nei seguenti file, ognuno con una responsabilità s
     * **Contenuto:** Punto di ingresso principale dell'applicazione. Contiene solo il blocco `if __name__ == '__main__':`.
     * **Scopo:** Inizializza l'oggetto `QtWidgets.QApplication`, importa la classe `App` da `main_window.py`, crea l'istanza della finestra principale, la visualizza (`window.show()`) e avvia il ciclo degli eventi (`app.exec()`). Isola la logica di avvio dell'applicazione.
 
-* **`main_window.py`**
-    * **Contenuto:** Definisce la classe principale `App(QtWidgets.QWidget)`, che rappresenta la finestra principale dell'applicazione.
-    * **Scopo:** È il cuore logico e visivo dell'applicazione. Contiene:
-        * La definizione della struttura dell'interfaccia utente (layout, pulsanti, area log, progress bar, badge, vista web).
-        * La gestione degli eventi dell'interfaccia utente (es. click sui pulsanti "Avvia", "Interrompi", "Apri NSIS").
-        * La logica per selezionare e leggere il file Excel (`pandas`).
-        * Il coordinamento del ciclo di controllo dei codici, invocando i metodi per l'interazione web (`Workspace_state`).
-        * L'aggiornamento in tempo reale dei widget della UI (log, progress bar, etichette di stato, contatori badge).
-        * La gestione del salvataggio dei risultati sul file Excel (`openpyxl`).
-        * L'inizializzazione e l'uso dei componenti definiti in `web_engine.py` e `ui_components.py`.
+* **`main_window/`**
+    * **Contenuto:** Package modulare contenente tutti i componenti dell'applicazione.
+    * **Scopo:** Organizza il codice in moduli specializzati per migliorare la manutenibilità.
 
 * **`config.py`**
     * **Contenuto:** Tutte le costanti globali utilizzate nell'applicazione.
     * **Scopo:** Centralizza valori di configurazione come:
-        * Parametri per le operazioni web (es. `MAX_RETRIES`, `Workspace_TIMEOUT_MS`).
+        * Parametri per le operazioni web (es. `MAX_RETRIES`, `FETCH_TIMEOUT_MS`).
         * Selettori CSS/JavaScript per l'estrazione dei dati dalla pagina web.
         * Codici colore per l'interfaccia utente e i badge di stato.
         * Nomi delle colonne Excel target (per lettura e scrittura).
         * Indici di colonna di fallback.
         Questo facilita la modifica di questi valori senza dover cercare nel codice principale e migliora la leggibilità evitando stringhe/numeri "magici".
 
-* **`web_engine.py`**
-    * **Contenuto:** Classi `WebEnginePage(QtWebEngineCore.QWebEnginePage)` e `JSBridge(QtCore.QObject)`.
-    * **Scopo:** Raggruppa le classi specificamente legate all'interazione avanzata con il componente `QtWebEngine`:
-        * `WebEnginePage`: Personalizza il comportamento della pagina web caricata (es. gestione apertura nuove finestre).
-        * `JSBridge`: Facilita la comunicazione bidirezionale tra il codice Python e il JavaScript eseguito nella pagina web, utilizzando `QWebChannel` per ricevere dati da JavaScript (come i risultati dell'estrazione).
-
-* **`ui_components.py`**
-    * **Contenuto:** Classi per widget GUI personalizzati, come `CustomProgressBar(QtWidgets.QProgressBar)`.
-    * **Scopo:** Isola la definizione di componenti dell'interfaccia utente riutilizzabili o con logica di disegno complessa. Mantiene la definizione della UI principale (`main_window.py`) più pulita.
-
-* **(Opzionale) `requirements.txt`**
+* **`requirements.txt`**
     * **Contenuto:** Elenco delle dipendenze Python necessarie per eseguire il progetto.
     * **Scopo:** Permette una facile installazione delle librerie richieste tramite `pip install -r requirements.txt`.
+
+* **`docs/`**
+    * **Contenuto:** Documentazione del progetto (report di refactoring, guide, etc.).
+    * **Scopo:** Organizza tutti i file di documentazione in un'unica cartella.
+
+* **`tests/`**
+    * **Contenuto:** Test unitari e di integrazione per i moduli principali.
+    * **Scopo:** Garantisce la qualità del codice e facilita il debugging.
+
+* **`logging_config.py`**
+    * **Contenuto:** Configurazione centralizzata per il logging dell'applicazione.
+    * **Scopo:** Gestisce i log con rotazione automatica e formattazione strutturata.
+
+* **`pyproject.toml`**
+    * **Contenuto:** Configurazione del progetto Python con impostazioni per linting e testing.
+    * **Scopo:** Standardizza la configurazione per strumenti di sviluppo.
+
+* **`Makefile`**
+    * **Contenuto:** Comandi automatizzati per operazioni comuni del progetto.
+    * **Scopo:** Semplifica lo sviluppo e il deployment.
 
 ## Requisiti
 
 Per eseguire questa applicazione, è necessario avere installato:
 
-* Python 3.x
+* **Windows 10 o superiore** (64-bit)
+* Python 3.8 o superiore
 * Le seguenti librerie Python:
     * `PyQt6`
     * `PyQt6-WebEngine`
-    * `pandas`
     * `openpyxl`
+
+### Requisiti di Sistema
+* **Sistema Operativo**: Windows 10/11 (64-bit)
+* **RAM**: Minimo 4GB, Consigliato 8GB
+* **Spazio Disco**: Minimo 500MB liberi
+* **Risoluzione**: Minimo 1024x768
+* **Browser**: Chrome o Edge (per l'automazione web)
 
 È consigliabile installare le dipendenze usando `pip`:
 ```bash
-pip install PyQt6 PyQt6-WebEngine pandas openpyxl
+pip install -r requirements.txt
+```
+
+## 🚀 Sviluppo
+
+### Installazione dipendenze di sviluppo
+```bash
+make install-dev
+```
+
+### Esecuzione test
+```bash
+make test
+```
+
+### Formattazione codice
+```bash
+make format
+```
+
+### Controllo qualità codice
+```bash
+make lint
+```
+
+### Pulizia progetto
+```bash
+make clean
+```
+
+### Esecuzione applicazione
+```bash
+make run
+```
+
+### Creazione installer Windows
+```bash
+make installer
+```
+**Nota**: Richiede Inno Setup 6 installato.
+
+## 📝 Logging
+
+L'applicazione utilizza un sistema di logging strutturato:
+- I log vengono salvati in `%APPDATA%\ControlloStatoNSIS\logs\` con timestamp
+- Rotazione automatica dei file di log
+- Configurazione centralizzata in `logging_config.py`
+
+## 🪟 Configurazione Windows
+
+L'applicazione è ottimizzata per Windows con:
+- **High DPI Awareness** per schermi ad alta risoluzione
+- **Integrazione con AppData** per configurazioni e log
+- **Supporto per Windows 10/11** con temi nativi
+- **Installer professionale** con Inno Setup
