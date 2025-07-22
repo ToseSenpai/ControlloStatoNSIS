@@ -7,24 +7,46 @@ import logging
 import time
 from .state_manager import AppState
 
-# Import from existing modules
-try:
-    from web_engine import WebEnginePage, JSBridge
-except ImportError:
-    # Fallback if web_engine module not available
-    class WebEnginePage(QtWebEngineWidgets.QWebEnginePage):
-        """Custom web engine page for handling navigation."""
-        
-        def acceptNavigationRequest(self, url, _type, isMainFrame):
-            """Handle navigation requests to allow external links."""
-            # Allow all navigation requests without debug logging for performance
-            return True
-        
-        def createStandardContextMenu(self):
-            """Create standard context menu for right-click."""
-            return super().createStandardContextMenu()
+# Custom web engine page for handling navigation
+class WebEnginePage(QtWebEngineCore.QWebEnginePage):
+    """Custom web engine page for handling navigation."""
     
-    class JSBridge(QtCore.QObject): pass
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._logger = logging.getLogger(__name__)
+    
+    def acceptNavigationRequest(self, url, _type, isMainFrame):
+        """Handle navigation requests to allow external links."""
+        # Allow all navigation requests
+        self._logger.debug(f"Navigation request: {url.toString()} (type: {_type}, mainFrame: {isMainFrame})")
+        return True
+    
+    def createWindow(self, _type):
+        """Handle new window/tab requests by creating a new page in the same view."""
+        self._logger.debug(f"New window request: {_type}")
+        # Create a new page but return the same view
+        new_page = WebEnginePage(self.parent())
+        new_page.setUrl(self.url())
+        return new_page
+    
+    def createStandardContextMenu(self):
+        """Create standard context menu for right-click."""
+        return super().createStandardContextMenu()
+    
+    def javaScriptConsoleMessage(self, level, message, lineNumber, sourceID):
+        """Handle JavaScript console messages for debugging."""
+        level_str = {0: "INFO", 1: "WARNING", 2: "ERROR"}.get(level, "UNKNOWN")
+        self._logger.debug(f"JS Console [{level_str}] Line {lineNumber}: {message}")
+    
+    def certificateError(self, error):
+        """Handle SSL certificate errors."""
+        self._logger.warning(f"Certificate error: {error.errorDescription()}")
+        # Accept certificate errors for development/testing
+        return True
+
+class JSBridge(QtCore.QObject):
+    """JavaScript bridge for web automation."""
+    pass
 
 class WebAutomation(QtCore.QObject):
     """Handles web automation for NSIS state checking."""
@@ -64,13 +86,30 @@ class WebAutomation(QtCore.QObject):
         """Setup web engine components."""
         try:
             self._web_view = web_view
-            self._web_page = self._web_view.page()
+            
+            # Create custom web page
+            self._web_page = WebEnginePage(self._web_view)
+            self._web_view.setPage(self._web_page)
+            
             self._js_bridge = JSBridge()
             
             # Connect signals
             self._web_page.loadFinished.connect(self._handle_page_load_finished)
             self._web_view.urlChanged.connect(self._handle_url_changed)
             self._web_page.linkHovered.connect(self._handle_link_hovered)
+            
+            # Enable JavaScript and plugins
+            self._web_page.settings().setAttribute(
+                QtWebEngineCore.QWebEngineSettings.WebAttribute.JavascriptEnabled, True)
+            self._web_page.settings().setAttribute(
+                QtWebEngineCore.QWebEngineSettings.WebAttribute.PluginsEnabled, True)
+            self._web_page.settings().setAttribute(
+                QtWebEngineCore.QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
+            self._web_page.settings().setAttribute(
+                QtWebEngineCore.QWebEngineSettings.WebAttribute.AllowRunningInsecureContent, True)
+            
+            # Inject JavaScript to handle link clicks
+            self._inject_link_handler_js()
             
             self._logger.info("Web automation setup completed")
             
@@ -80,6 +119,97 @@ class WebAutomation(QtCore.QObject):
             traceback.print_exc()
             raise
     
+    def _inject_link_handler_js(self):
+        """Inject JavaScript to handle link clicks and prevent new windows."""
+        js_code = """
+        (function() {
+            // Override window.open to prevent popups
+            window.open = function(url, name, features) {
+                console.log('Intercepted window.open:', url);
+                if (url) {
+                    window.location.href = url;
+                }
+                return null;
+            };
+            
+            // Handle all link clicks
+            document.addEventListener('click', function(e) {
+                var target = e.target;
+                while (target && target.tagName !== 'A') {
+                    target = target.parentElement;
+                }
+                
+                if (target && target.tagName === 'A') {
+                    var href = target.getAttribute('href');
+                    var target_attr = target.getAttribute('target');
+                    
+                    if (href && (target_attr === '_blank' || target_attr === '_new')) {
+                        e.preventDefault();
+                        console.log('Intercepted external link:', href);
+                        window.location.href = href;
+                    }
+                }
+            }, true);
+            
+            // Override target="_blank" links
+            var links = document.querySelectorAll('a[target="_blank"], a[target="_new"]');
+            for (var i = 0; i < links.length; i++) {
+                links[i].removeAttribute('target');
+            }
+        })();
+        """
+        self._web_page.runJavaScript(js_code)
+    
+    def _inject_rounded_corners_css(self):
+        """Inject CSS for elegant web integration."""
+        css_code = """
+        /* Elegant web integration - subtle styling */
+        body {
+            margin: 0 !important;
+            padding: 8px !important;
+            background: transparent !important;
+        }
+        
+        /* Ensure content doesn't overflow */
+        html {
+            overflow-x: hidden !important;
+        }
+        
+        /* Subtle styling for better integration */
+        body > div:first-child {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        """
+        
+        # Single injection for clean integration
+        def inject_css():
+            self._web_page.runJavaScript(f"""
+            (function() {{
+                // Remove any existing style
+                var existingStyle = document.getElementById('web-integration-style');
+                if (existingStyle) {{
+                    existingStyle.remove();
+                }}
+                
+                // Create and inject new style
+                var style = document.createElement('style');
+                style.id = 'web-integration-style';
+                style.textContent = `{css_code}`;
+                document.head.appendChild(style);
+                
+                // Apply subtle styling
+                document.body.style.margin = '0';
+                document.body.style.padding = '8px';
+                document.body.style.background = 'transparent';
+                
+                console.log('Web integration CSS applied successfully');
+            }})();
+            """)
+        
+        # Single injection after page load
+        QtCore.QTimer.singleShot(500, inject_css)
+    
     def load_url(self, url: Optional[str] = None):
         """Load the NSIS URL."""
         target_url = url or self._url_nsis
@@ -88,7 +218,6 @@ class WebAutomation(QtCore.QObject):
         
         if self._web_view:
             try:
-                self._web_view.setPage(self._web_page)
                 self._web_view.load(QtCore.QUrl(target_url))
                 
                 # Set timeout for page load (increased for stability)
@@ -274,6 +403,13 @@ class WebAutomation(QtCore.QObject):
         """Handle page load finished event."""
         if ok:
             self._logger.info("Page loaded successfully")
+            
+            # Inject link handler JavaScript after page load
+            self._inject_link_handler_js()
+            
+            # Inject rounded corners CSS after page load
+            self._inject_rounded_corners_css()
+            
             self._set_state(AppState.IDLE)
             
             # If there's a pending fetch, execute it

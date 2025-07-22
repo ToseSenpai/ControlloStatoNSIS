@@ -66,11 +66,32 @@ class App(QtWidgets.QWidget):
         )
     
     def _setup_ui(self, ui_font_family: str):
-        """Setup the user interface."""
-        # Set window properties
-        self.setWindowTitle("Controllo Stato Richiesta NSIS v2.0")
+        """Setup the user interface with Glassmorphism design."""
+        # Set window properties for Glassmorphism
+        self.setWindowTitle("Controllo Stato Richiesta NSIS v2.0 - Glassmorphism")
         self.setMinimumSize(1000, 700)
         self.resize(1200, 800)
+        
+        # Enable window transparency for Glassmorphism effect
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
+        
+        # Set window background with very subtle gradient for Glassmorphism and rounded corners
+        self.setStyleSheet("""
+            QWidget {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 rgba(248, 250, 252, 0.3),
+                    stop:1 rgba(241, 245, 249, 0.3));
+                border-radius: 12px;
+            }
+            QMainWindow {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 rgba(248, 250, 252, 0.3),
+                    stop:1 rgba(241, 245, 249, 0.3));
+                border-radius: 12px;
+            }
+        """)
+        print("✅ Background sottile applicato per Glassmorphism bilanciato")
         
         # Set font
         if ui_font_family and ui_font_family != 'Arial':
@@ -83,11 +104,306 @@ class App(QtWidgets.QWidget):
         if os.path.exists(icon_path):
             self.setWindowIcon(QtWidgets.QApplication.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_ComputerIcon))
         
+        # Background is now set directly on the window
+        
+        # Add window controls for frameless window
+        self._setup_window_controls()
+        
+        # Setup resize functionality
+        self._setup_resize_functionality()
+        
         # Connect resize event for responsive layout
         self.resizeEvent = self._handle_resize_event
+        
+        # Connect child added event to enable mouse tracking
+        self.childEvent = self._handle_child_event
+    
+
+    
+    def _setup_window_controls(self):
+        """Setup window control buttons for frameless window."""
+        # Create window controls container
+        self._window_controls = QtWidgets.QWidget(self)
+        self._window_controls.setObjectName("windowControls")
+        self._window_controls.setFixedSize(120, 30)
+        self._window_controls.move(self.width() - 130, 10)
+        
+        # Ensure controls are on top
+        self._window_controls.raise_()
+        
+        # Store window state
+        self._is_maximized = False
+        self._normal_geometry = None
+        
+        # Create layout for controls
+        controls_layout = QtWidgets.QHBoxLayout(self._window_controls)
+        controls_layout.setSpacing(8)
+        controls_layout.setContentsMargins(8, 4, 8, 4)
+        
+        # Minimize button
+        self._minimize_btn = QtWidgets.QPushButton("−")
+        self._minimize_btn.setObjectName("minimizeButton")
+        self._minimize_btn.setFixedSize(24, 24)
+        self._minimize_btn.clicked.connect(self.showMinimized)
+        
+        # Maximize/Restore button
+        self._maximize_btn = QtWidgets.QPushButton("□")
+        self._maximize_btn.setObjectName("maximizeButton")
+        self._maximize_btn.setFixedSize(24, 24)
+        self._maximize_btn.clicked.connect(self._toggle_maximize)
+        
+        # Close button
+        self._close_btn = QtWidgets.QPushButton("×")
+        self._close_btn.setObjectName("closeButton")
+        self._close_btn.setFixedSize(24, 24)
+        self._close_btn.clicked.connect(self.close)
+        
+        controls_layout.addWidget(self._minimize_btn)
+        controls_layout.addWidget(self._maximize_btn)
+        controls_layout.addWidget(self._close_btn)
+        
+        # Style the controls
+        self._window_controls.setStyleSheet("""
+            QWidget#windowControls {
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            QPushButton#minimizeButton, QPushButton#maximizeButton, QPushButton#closeButton {
+                background: transparent;
+                border: none;
+                color: #495057;
+                font-size: 16px;
+                font-weight: 600;
+                border-radius: 8px;
+                margin: 2px;
+                min-width: 24px;
+                min-height: 24px;
+            }
+            QPushButton#minimizeButton:hover, QPushButton#maximizeButton:hover {
+                background: rgba(255, 255, 255, 0.2);
+                color: #212529;
+                border-radius: 8px;
+            }
+            QPushButton#closeButton:hover {
+                background: rgba(220, 53, 69, 0.8);
+                color: white;
+                border-radius: 8px;
+            }
+            QPushButton#minimizeButton:pressed, QPushButton#maximizeButton:pressed, QPushButton#closeButton:pressed {
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+            }
+        """)
+    
+    def _setup_resize_functionality(self):
+        """Setup resize functionality for frameless window."""
+        # Variables for resize functionality
+        self._resize_edge = None
+        self._resize_start_pos = None
+        self._resize_start_geometry = None
+        
+        # Set up resize areas
+        self._resize_border = 8  # Border width for resize detection
+        
+        # Enable mouse tracking for resize detection
+        self.setMouseTracking(True)
+        
+        # Also enable mouse tracking for child widgets
+        self._enable_mouse_tracking_recursive(self)
+    
+    def _enable_mouse_tracking_recursive(self, widget):
+        """Enable mouse tracking for widget and all its children."""
+        widget.setMouseTracking(True)
+        for child in widget.findChildren(QtWidgets.QWidget):
+            child.setMouseTracking(True)
+    
+    def _handle_child_event(self, event):
+        """Handle child added/removed events to maintain mouse tracking."""
+        if event.type() == QtCore.QEvent.Type.ChildAdded:
+            child = event.child()
+            if isinstance(child, QtWidgets.QWidget):
+                child.setMouseTracking(True)
+                self._enable_mouse_tracking_recursive(child)
+        event.accept()
+    
+    def _toggle_maximize(self):
+        """Toggle between maximized and normal window state."""
+        if self._is_maximized:
+            # Restore to normal size
+            if self._normal_geometry:
+                self.setGeometry(self._normal_geometry)
+            else:
+                self.resize(1200, 800)
+                self.move(100, 100)
+            self._is_maximized = False
+            self._maximize_btn.setText("□")
+        else:
+            # Maximize
+            self._normal_geometry = self.geometry()
+            screen = QtWidgets.QApplication.primaryScreen().geometry()
+            self.setGeometry(screen)
+            self._is_maximized = True
+            self._maximize_btn.setText("❐")
+        
+        # Update window controls position
+        self._update_window_controls_position()
+    
+    def _update_window_controls_position(self):
+        """Update window controls position based on window state."""
+        if hasattr(self, '_window_controls'):
+            if self._is_maximized:
+                # Position controls in top-right corner when maximized
+                self._window_controls.move(self.width() - 130, 10)
+            else:
+                # Position controls normally
+                self._window_controls.move(self.width() - 130, 10)
+    
+    def mousePressEvent(self, event):
+        """Handle mouse press for window dragging and resizing."""
+        if event.button() == QtCore.Qt.MouseButton.LeftButton:
+            # Check if we're in a resize area
+            edge = self._get_resize_edge(event.pos())
+            if edge:
+                print(f"DEBUG: Resize detected - Edge: {edge}, Pos: {event.pos()}")
+                self._resize_edge = edge
+                self._resize_start_pos = event.globalPosition().toPoint()
+                self._resize_start_geometry = self.geometry()
+                # Clear any existing drag position to prevent conflicts
+                if hasattr(self, '_drag_position'):
+                    delattr(self, '_drag_position')
+                event.accept()
+            else:
+                # Normal dragging - only if not in resize mode
+                if not hasattr(self, '_resize_edge') or not self._resize_edge:
+                    self._drag_position = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
+                event.accept()
+    
+    def mouseMoveEvent(self, event):
+        """Handle mouse move for window dragging and resizing."""
+        if event.buttons() == QtCore.Qt.MouseButton.LeftButton:
+            if hasattr(self, '_resize_edge') and self._resize_edge:
+                # Handle resizing
+                self._handle_resize(event.globalPosition().toPoint())
+                event.accept()
+                return  # Don't process dragging when resizing
+            elif hasattr(self, '_drag_position'):
+                # Handle dragging
+                self.move(event.globalPosition().toPoint() - self._drag_position)
+                event.accept()
+                return
+        else:
+            # Update cursor based on position
+            edge = self._get_resize_edge(event.pos())
+            self._update_cursor(edge)
+    
+    def _get_resize_edge(self, pos):
+        """Get the resize edge based on mouse position."""
+        if self._is_maximized:
+            return None
+        
+        # Don't allow resizing if mouse is over window controls
+        if hasattr(self, '_window_controls') and self._window_controls:
+            controls_rect = self._window_controls.geometry()
+            if controls_rect.contains(pos):
+                return None
+        
+        x, y = pos.x(), pos.y()
+        width, height = self.width(), self.height()
+        border = self._resize_border
+        
+        # Check corners first (larger detection area)
+        if x < border + 2 and y < border + 2:
+            return 'top-left'
+        elif x > width - border - 2 and y < border + 2:
+            return 'top-right'
+        elif x < border + 2 and y > height - border - 2:
+            return 'bottom-left'
+        elif x > width - border - 2 and y > height - border - 2:
+            return 'bottom-right'
+        # Check edges
+        elif x < border:
+            return 'left'
+        elif x > width - border:
+            return 'right'
+        elif y < border:
+            return 'top'
+        elif y > height - border:
+            return 'bottom'
+        
+        return None
+    
+    def _update_cursor(self, edge):
+        """Update cursor based on resize edge."""
+        if not edge:
+            self.setCursor(QtCore.Qt.CursorShape.ArrowCursor)
+            return
+        
+        cursor_map = {
+            'top': QtCore.Qt.CursorShape.SizeVerCursor,
+            'bottom': QtCore.Qt.CursorShape.SizeVerCursor,
+            'left': QtCore.Qt.CursorShape.SizeHorCursor,
+            'right': QtCore.Qt.CursorShape.SizeHorCursor,
+            'top-left': QtCore.Qt.CursorShape.SizeFDiagCursor,
+            'top-right': QtCore.Qt.CursorShape.SizeBDiagCursor,
+            'bottom-left': QtCore.Qt.CursorShape.SizeBDiagCursor,
+            'bottom-right': QtCore.Qt.CursorShape.SizeFDiagCursor,
+        }
+        
+        self.setCursor(cursor_map.get(edge, QtCore.Qt.CursorShape.ArrowCursor))
+    
+    def _handle_resize(self, global_pos):
+        """Handle window resizing."""
+        if not self._resize_start_pos or not self._resize_start_geometry:
+            return
+        
+        delta = global_pos - self._resize_start_pos
+        new_geometry = QtCore.QRect(self._resize_start_geometry)
+        
+        # Apply resize based on edge
+        if 'left' in self._resize_edge:
+            new_left = new_geometry.left() + delta.x()
+            if new_left < new_geometry.right() - self.minimumWidth():
+                new_geometry.setLeft(new_left)
+        if 'right' in self._resize_edge:
+            new_right = new_geometry.right() + delta.x()
+            if new_right > new_geometry.left() + self.minimumWidth():
+                new_geometry.setRight(new_right)
+        if 'top' in self._resize_edge:
+            new_top = new_geometry.top() + delta.y()
+            if new_top < new_geometry.bottom() - self.minimumHeight():
+                new_geometry.setTop(new_top)
+        if 'bottom' in self._resize_edge:
+            new_bottom = new_geometry.bottom() + delta.y()
+            if new_bottom > new_geometry.top() + self.minimumHeight():
+                new_geometry.setBottom(new_bottom)
+        
+        # Ensure the geometry is valid
+        if new_geometry.isValid() and new_geometry.width() >= self.minimumWidth() and new_geometry.height() >= self.minimumHeight():
+            self.setGeometry(new_geometry)
+    
+    def mouseReleaseEvent(self, event):
+        """Handle mouse release to stop dragging/resizing."""
+        if event.button() == QtCore.Qt.MouseButton.LeftButton:
+            # Clear resize state
+            self._resize_edge = None
+            self._resize_start_pos = None
+            self._resize_start_geometry = None
+            
+            # Clear drag state
+            if hasattr(self, '_drag_position'):
+                delattr(self, '_drag_position')
+            
+            # Reset cursor
+            self.setCursor(QtCore.Qt.CursorShape.ArrowCursor)
+            event.accept()
     
     def _handle_resize_event(self, event):
         """Handle window resize event to optimize layout."""
+        # Update window controls position
+        self._update_window_controls_position()
+        
+        # Update UI manager layout
         self._ui_manager.update_layout_on_resize()
     
     def _setup_web_engine(self):
@@ -96,23 +412,23 @@ class App(QtWidgets.QWidget):
             print("DEBUG: Setup web engine come nel file originale...")
             
             # Create web view like in original
-            web_view = QtWebEngineWidgets.QWebEngineView()
+            self._web_view = QtWebEngineWidgets.QWebEngineView()
             print("DEBUG: QWebEngineView creato")
             
             # Create page like in original
             from PyQt6.QtWebEngineCore import QWebEnginePage
             # Use our custom WebEnginePage from web_automation module
             from .web_automation import WebEnginePage
-            page = WebEnginePage(web_view)
-            web_view.setPage(page)
+            page = WebEnginePage(self._web_view)
+            self._web_view.setPage(page)
             print("DEBUG: WebEnginePage personalizzata creata e impostata")
             
             # Set up web automation with the web view
-            self._web_automation.setup_web_engine(web_view)
+            self._web_automation.setup_web_engine(self._web_view)
             print("DEBUG: Web automation setup completato")
             
             # Set web view in UI
-            self._ui_manager.set_web_view(web_view)
+            self._ui_manager.set_web_view(self._web_view)
             print("DEBUG: Web view impostato in UI")
             
             # Connect page load signal like in original
@@ -120,7 +436,7 @@ class App(QtWidgets.QWidget):
             print("DEBUG: Segnale loadFinished connesso")
             
             # Load initial URL immediately like in original
-            web_view.load(QtCore.QUrl("https://www.impresa.gov.it/intro/info/news.html"))
+            self._web_view.load(QtCore.QUrl("https://www.impresa.gov.it/intro/info/news.html"))
             
             self._logger.info("Web engine setup completed successfully")
             self._ui_manager.add_log_message("✅ Web Engine inizializzato correttamente")
@@ -168,6 +484,11 @@ class App(QtWidgets.QWidget):
         self._ui_manager.openNsisClicked.connect(self._open_nsis_url)
         self._ui_manager.resetLayoutClicked.connect(self._reset_layout)
         self._ui_manager.fileSelected.connect(self._on_file_selected)
+        
+        # Web navigation signals
+        self._ui_manager.webBackClicked.connect(self._web_back)
+        self._ui_manager.webForwardClicked.connect(self._web_forward)
+        self._ui_manager.webReloadClicked.connect(self._web_reload)
         
         # State Manager signals
         self._state_manager.stateChanged.connect(self._on_state_changed)
@@ -270,9 +591,13 @@ class App(QtWidgets.QWidget):
         success, codes, error_msg = self._excel_handler.load_excel_file(file_path)
         
         if success:
+            # Update file path display with nice effects
+            self._ui_manager.set_file_path(file_path)
             self._ui_manager.add_log_message(f"✅ Caricati {len(codes)} codici dal file")
             self._ui_manager.update_status(f"Pronto: {len(codes)} codici da elaborare")
         else:
+            # Reset file path on error
+            self._ui_manager.reset_file_path()
             self._ui_manager.add_log_message(f"❌ Errore caricamento file: {error_msg}")
             self._ui_manager.update_status("Errore caricamento file")
     
@@ -371,6 +696,33 @@ class App(QtWidgets.QWidget):
         except Exception as e:
             self._ui_manager.add_log_message(f"❌ Errore reset layout: {e}")
             self._logger.error(f"Error resetting layout: {e}")
+    
+    def _web_back(self):
+        """Navigate back in web view."""
+        if self._web_view and self._web_view.history().canGoBack():
+            self._web_view.back()
+            self._ui_manager.add_log_message("⬅️ Navigazione indietro")
+            self._logger.info("Web navigation: back")
+        else:
+            self._ui_manager.add_log_message("⚠️ Non è possibile tornare indietro")
+    
+    def _web_forward(self):
+        """Navigate forward in web view."""
+        if self._web_view and self._web_view.history().canGoForward():
+            self._web_view.forward()
+            self._ui_manager.add_log_message("➡️ Navigazione avanti")
+            self._logger.info("Web navigation: forward")
+        else:
+            self._ui_manager.add_log_message("⚠️ Non è possibile andare avanti")
+    
+    def _web_reload(self):
+        """Reload current page in web view."""
+        if self._web_view:
+            self._web_view.reload()
+            self._ui_manager.add_log_message("🔄 Ricaricamento pagina")
+            self._logger.info("Web navigation: reload")
+        else:
+            self._ui_manager.add_log_message("❌ Browser non disponibile")
     
     def closeEvent(self, event):
         """Handle application close event."""
