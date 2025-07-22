@@ -7,14 +7,14 @@ import os
 import traceback
 from PyQt6 import QtWidgets, QtGui, QtCore
 
-# Importa la classe App (già ottimizzata con import differiti)
+# Importa la classe App dal nuovo modulo
 try:
-    from main_window import App
+    from main_window.app import App
 except ImportError as e:
-    print(f"ERRORE CRITICO: Impossibile importare 'App' da 'main_window': {e}", file=sys.stderr)
+    print(f"ERRORE CRITICO: Impossibile importare 'App' da 'main_window.app': {e}", file=sys.stderr)
     app_temp = QtWidgets.QApplication.instance()
     if not app_temp: app_temp = QtWidgets.QApplication(sys.argv)
-    QtWidgets.QMessageBox.critical(None, "Errore Import", f"Modulo App non trovato o errato:\n{e}\n\nControllare main_window.py.")
+    QtWidgets.QMessageBox.critical(None, "Errore Import", f"Modulo App non trovato o errato:\n{e}\n\nControllare main_window/app.py.")
     sys.exit(1)
 
 # Funzione per caricare i font (invariata)

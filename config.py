@@ -4,8 +4,8 @@
 # Operazioni Web
 URL_NSIS = 'https://www.impresa.gov.it/intro/info/news.html'
 MAX_RETRIES = 2
-FETCH_TIMEOUT_MS = 10000
-FETCH_CHECK_INTERVAL_MS = 100
+FETCH_TIMEOUT_MS = 5000  # Ridotto da 10000 a 5000ms
+FETCH_CHECK_INTERVAL_MS = 50  # Ridotto da 100 a 50ms
 STATO_SELECTOR = "#risultatiConsultazionePratica tbody tr td:nth-child(3)" # Selettore CSS per lo stato
 ALL_CELLS_JS = '''(function() {
     var row = document.querySelector('#risultatiConsultazionePratica tbody tr');
@@ -16,11 +16,11 @@ ALL_CELLS_JS = '''(function() {
     return texts;
 })();''' # Script JS per ottenere tutte le celle
 
-# Ritardi e Controlli Fetch (in millisecondi)
-DELAY_AFTER_INPUT_JS = 100
-DELAY_AFTER_CLICK_JS = 1000
-DELAY_BETWEEN_RETRIES = 1000
-MAX_NULL_CHECKS = 5
+# Ritardi e Controlli Fetch (in millisecondi) - Ottimizzati per velocità
+DELAY_AFTER_INPUT_JS = 50  # Ridotto da 100 a 50ms
+DELAY_AFTER_CLICK_JS = 500  # Ridotto da 1000 a 500ms
+DELAY_BETWEEN_RETRIES = 500  # Ridotto da 1000 a 500ms
+MAX_NULL_CHECKS = 3  # Ridotto da 5 a 3
 
 # --- Palette Colori stile Luma (Light Theme) ---
 COLOR_LUMA_WHITE = "#FFFFFF"
