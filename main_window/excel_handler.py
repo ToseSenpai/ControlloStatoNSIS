@@ -292,7 +292,14 @@ class ExcelHandler:
                     if config_key in final_col_indices:
                         col_idx = final_col_indices[config_key]
                         cell = sheet.cell(row=row_idx, column=col_idx)
-                        cell.value = result.get(config_key, '')
+                        
+                        # Special handling for Note Usmaf column
+                        if config_key == 'Note Usmaf':
+                            note_value = result.get(config_key, '')
+                            # If note is empty, write "NOTA USMAF"
+                            cell.value = note_value if note_value.strip() else "NOTA USMAF"
+                        else:
+                            cell.value = result.get(config_key, '')
             
             return True
             

@@ -64,11 +64,8 @@ except ImportError:
 if __name__ == '__main__':
 
     # Setup Windows-specific environment
-    try:
-        from windows_config import setup_windows_environment
-        setup_windows_environment()
-    except ImportError:
-        pass  # Continue without Windows-specific setup
+    # Note: windows_config module not found, skipping Windows-specific setup
+    pass
     
     # Imposta attributi DPI (invariato)
     if hasattr(QtCore.Qt.ApplicationAttribute, 'AA_EnableHighDpiScaling'):

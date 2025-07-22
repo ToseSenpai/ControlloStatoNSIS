@@ -141,22 +141,25 @@ class App(QtWidgets.QWidget):
         controls_layout.setContentsMargins(4, 2, 4, 2)
         
         # Minimize button
-        self._minimize_btn = QtWidgets.QPushButton("−")
+        self._minimize_btn = QtWidgets.QPushButton()
         self._minimize_btn.setObjectName("minimizeButton")
         self._minimize_btn.setFixedSize(32, 32)
         self._minimize_btn.clicked.connect(self.showMinimized)
+        self._load_window_control_icon(self._minimize_btn, "minimize.png")
         
         # Maximize/Restore button
-        self._maximize_btn = QtWidgets.QPushButton("□")
+        self._maximize_btn = QtWidgets.QPushButton()
         self._maximize_btn.setObjectName("maximizeButton")
         self._maximize_btn.setFixedSize(32, 32)
         self._maximize_btn.clicked.connect(self._toggle_maximize)
+        self._load_window_control_icon(self._maximize_btn, "large.png")
         
         # Close button
-        self._close_btn = QtWidgets.QPushButton("×")
+        self._close_btn = QtWidgets.QPushButton()
         self._close_btn.setObjectName("closeButton")
         self._close_btn.setFixedSize(32, 32)
         self._close_btn.clicked.connect(self.close)
+        self._load_window_control_icon(self._close_btn, "close.png")
         
         controls_layout.addWidget(self._minimize_btn)
         controls_layout.addWidget(self._maximize_btn)
@@ -169,8 +172,8 @@ class App(QtWidgets.QWidget):
                 border: none;
             }
             QPushButton#minimizeButton, QPushButton#maximizeButton, QPushButton#closeButton {
-                background: rgba(0, 0, 0, 0.7);
-                border: 1px solid rgba(0, 0, 0, 0.3);
+                background: transparent;
+                border: none;
                 color: rgba(255, 255, 255, 0.9);
                 font-size: 16px;
                 font-weight: 600;
@@ -180,37 +183,53 @@ class App(QtWidgets.QWidget):
                 min-height: 32px;
                 max-width: 32px;
                 max-height: 32px;
-                backdrop-filter: blur(10px);
             }
             QPushButton#minimizeButton:hover, QPushButton#maximizeButton:hover {
-                background: rgba(0, 0, 0, 0.85);
+                background: transparent;
                 color: rgba(255, 255, 255, 1.0);
-                border: 1px solid rgba(255, 255, 255, 0.2);
+                border: none;
                 border-radius: 8px;
-                transform: scale(1.05);
             }
             QPushButton#closeButton:hover {
-                background: rgba(220, 53, 69, 0.95);
-                color: white;
-                border: 1px solid rgba(220, 53, 69, 0.8);
+                background: transparent;
+                color: rgba(255, 255, 255, 1.0);
+                border: none;
                 border-radius: 8px;
-                transform: scale(1.05);
             }
             QPushButton#minimizeButton:pressed, QPushButton#maximizeButton:pressed {
-                background: rgba(0, 0, 0, 0.95);
+                background: transparent;
                 color: rgba(255, 255, 255, 1.0);
-                border: 1px solid rgba(255, 255, 255, 0.3);
+                border: none;
                 border-radius: 8px;
-                transform: scale(0.95);
             }
             QPushButton#closeButton:pressed {
-                background: rgba(200, 35, 51, 1.0);
-                color: white;
-                border: 1px solid rgba(200, 35, 51, 1.0);
+                background: transparent;
+                color: rgba(255, 255, 255, 1.0);
+                border: none;
                 border-radius: 8px;
-                transform: scale(0.95);
             }
         """)
+    
+    def _load_window_control_icon(self, button, icon_filename):
+        """Load PNG icon for window control button."""
+        try:
+            import os
+            icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", icon_filename)
+            if os.path.exists(icon_path):
+                from PyQt6.QtGui import QIcon, QPixmap
+                icon = QIcon(icon_path)
+                # Scale icon to fit button (24x24 to leave some padding)
+                pixmap = icon.pixmap(24, 24)
+                button.setIcon(QIcon(pixmap))
+                button.setIconSize(QtCore.QSize(24, 24))
+        except Exception as e:
+            # Fallback to text if icon loading fails
+            if "minimize" in icon_filename:
+                button.setText("−")
+            elif "large" in icon_filename:
+                button.setText("□")
+            elif "close" in icon_filename:
+                button.setText("×")
     
     def _setup_resize_functionality(self):
         """Setup resize functionality for frameless window."""
@@ -253,14 +272,14 @@ class App(QtWidgets.QWidget):
                 self.resize(1200, 800)
                 self.move(100, 100)
             self._is_maximized = False
-            self._maximize_btn.setText("□")
+            # Icon stays the same for large button
         else:
             # Maximize
             self._normal_geometry = self.geometry()
             screen = QtWidgets.QApplication.primaryScreen().geometry()
             self.setGeometry(screen)
             self._is_maximized = True
-            self._maximize_btn.setText("❐")
+            # Icon stays the same for large button
         
         # Update window controls position
         self._update_window_controls_position()

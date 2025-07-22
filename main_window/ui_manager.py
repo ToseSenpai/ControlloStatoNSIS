@@ -30,44 +30,49 @@ COLORS = {
     'text_primary': '#212529',    # Dark text for high contrast
     'text_secondary': '#6c757d',  # Medium gray text
     'text_muted': '#adb5bd',      # Light gray text
-    'accent_primary': '#007BFF',  # Vibrant blue
-    'accent_primary_alt': '#0056b3', # Darker blue
-    'accent_secondary': '#28a745', # Vibrant green
-    'accent_secondary_alt': '#1e7e34', # Darker green
-    'accent_error': '#dc3545',    # Vibrant red
-    'accent_error_alt': '#c82333', # Darker red
-    'accent_warning': '#ffc107',  # Vibrant yellow
-    'accent_warning_alt': '#e0a800', # Darker yellow
-    'accent_info': '#17a2b8',     # Vibrant cyan
-    'accent_info_alt': '#138496', # Darker cyan
+    'accent_primary': '#3B82F6',  # Modern blue (unified button color)
+    'accent_primary_alt': '#2563EB', # Darker blue for hover
+    'accent_primary_light': '#60A5FA', # Lighter blue for pressed
+    'accent_secondary': '#3B82F6', # Same as primary for consistency
+    'accent_secondary_alt': '#2563EB', # Same as primary alt
+    'accent_error': '#3B82F6',    # Same as primary for consistency
+    'accent_error_alt': '#2563EB', # Same as primary alt
+    'accent_warning': '#3B82F6',  # Same as primary for consistency
+    'accent_warning_alt': '#2563EB', # Same as primary alt
+    'accent_info': '#3B82F6',     # Same as primary for consistency
+    'accent_info_alt': '#2563EB', # Same as primary alt
     'border': 'rgba(255, 255, 255, 0.25)', # Glass border
     'border_light': 'rgba(255, 255, 255, 0.15)', # Light glass border
     'shadow': 'rgba(0, 0, 0, 0.1)', # Subtle shadow
     'signature': '#6c757d',       # Signature text color
     'glass_white': 'rgba(255, 255, 255, 0.15)', # Glass white overlay
     'glass_highlight': 'rgba(255, 255, 255, 0.25)', # Glass highlight
-    'title_accent': '#0078d4',    # Windows 11 blue accent for titles
-    'title_accent_light': '#106ebe',  # Lighter Windows 11 blue for gradients
-    'dhl_yellow': '#FFCC00',      # DHL yellow
-    'dhl_yellow_dark': '#E6B800', # Darker DHL yellow for hover
-    'dhl_red': '#D40511',         # DHL red
+    'title_accent': '#3B82F6',    # Same as primary for consistency
+    'title_accent_light': '#60A5FA',  # Lighter blue for gradients
+    'dhl_yellow': '#3B82F6',      # Same as primary for consistency
+    'dhl_yellow_dark': '#2563EB', # Same as primary alt
+    'dhl_red': '#3B82F6',         # Same as primary for consistency
 }
 
 # Icon mapping with QtAwesome professional icons - Enhanced
 ICONS = {
-    'play': 'fa5s.plane',            # Plane for start (DHL style)
-    'stop': 'fa5s.power-off',        # Power off for stop
-    'trash': 'fa5s.trash-alt',
-    'home': 'fa5s.home',
-    'folder': 'fa5s.folder-open',    # Open folder for file selection
+    'play': 'start',                 # Custom start icon from icons/start.png
+    'stop': 'stop',                  # Custom stop icon from icons/stop.png
+    'trash': 'trash',                # Custom trash icon from icons/trash.png
+    'home': 'home',                  # Custom home icon from icons/home.png
+    'folder': 'folder',              # Custom folder icon from icons/folder.png
     'check': 'fa5s.check-square',
     'settings': 'fa5s.cog',
     'send': 'fa5s.paper-plane',
     'alert': 'fa5s.exclamation-triangle',
-    'arrow_left': 'fa5s.arrow-left',
-    'arrow_right': 'fa5s.arrow-right',
-    'rotate': 'fa5s.redo',
-    'file': 'fa5s.file-excel',       # Excel file icon
+    'arrow_left': 'left',
+    'arrow_right': 'right',
+    'rotate': 'reload',
+    'file': 'fa5s.table',            # Table icon for Excel files
+    'excel': 'excel',                # Custom Excel icon from icons/excel.png
+    'chrome': 'chrome',              # Custom Chrome icon from icons/chrome.png
+    'controls': 'controls',          # Custom controls icon from icons/controls.png
+    'statistics': 'statistics',      # Custom statistics GIF from icons/statistics.gif
     'eye_open': 'fa5s.eye',          # Eye open for visible log
     'eye_closed': 'fa5s.eye-slash',  # Eye closed for hidden log
 }
@@ -122,7 +127,7 @@ class Windows11ProgressBar(QtWidgets.QProgressBar):
         self._animation.start()
 
 class ModernFluentProgressBar(QtWidgets.QWidget):
-    """Modern progress bar with red/yellow gradient and animated truck."""
+    """Modern progress bar with blue gradient and animated truck."""
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("modernFluentProgressBar")
@@ -133,14 +138,14 @@ class ModernFluentProgressBar(QtWidgets.QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(8)
         
-        # Progress info label with modern styling
+        # Progress info label with modern styling - CHANGED TO DARK TEXT
         self._progress_info = QtWidgets.QLabel("0%")
         self._progress_info.setObjectName("progressInfo")
         self._progress_info.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self._progress_info.setStyleSheet("""
             QLabel#progressInfo {
-                color: rgba(255, 255, 255, 0.9);
-                font-size: 14px;
+                color: #1E3A8A;
+                font-size: 16px;
                 font-weight: 700;
                 background: transparent;
                 border: none;
@@ -150,31 +155,31 @@ class ModernFluentProgressBar(QtWidgets.QWidget):
             }
         """)
         
-        # Progress bar container with red/yellow theme
+        # Progress bar container with better contrast
         self._progress_container = QtWidgets.QWidget()
         self._progress_container.setObjectName("progressContainer")
         self._progress_container.setFixedHeight(12)
         self._progress_container.setStyleSheet("""
             QWidget#progressContainer {
-                background: rgba(255, 255, 255, 0.1);
-                border: 2px solid rgba(255, 255, 255, 0.2);
+                background: rgba(255, 255, 255, 0.3);
+                border: 2px solid rgba(59, 130, 246, 0.4);
                 border-radius: 6px;
                 margin: 0px;
             }
         """)
         
-        # Progress fill widget with red/yellow gradient
+        # Progress fill widget with bright blue gradient
         self._progress_fill = QtWidgets.QWidget(self._progress_container)
         self._progress_fill.setObjectName("progressFill")
         self._progress_fill.setFixedHeight(8)
         self._progress_fill.setStyleSheet("""
             QWidget#progressFill {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #FF0000,
-                    stop:0.25 #FF4500,
-                    stop:0.5 #FF8C00,
-                    stop:0.75 #FFD700,
-                    stop:1 #FFFF00);
+                    stop:0 #60A5FA,
+                    stop:0.25 #3B82F6,
+                    stop:0.5 #2563EB,
+                    stop:0.75 #1D4ED8,
+                    stop:1 #1E40AF);
                 border: none;
                 border-radius: 4px;
                 margin: 2px;
@@ -209,18 +214,18 @@ class ModernFluentProgressBar(QtWidgets.QWidget):
         self._truck_animation.setLoopCount(-1)
         self._truck_animation.setEasingCurve(QtCore.QEasingCurve.Type.InOutQuad)
         
-        # Gradient animation for shimmer effect
+        # Gradient animation for shimmer effect - BRIGHTER COLORS
         self._gradient_animation = QtCore.QPropertyAnimation(self._progress_fill, b"styleSheet")
         self._gradient_animation.setDuration(3000)
         self._gradient_animation.setLoopCount(-1)
         self._gradient_animation.setStartValue("""
             QWidget#progressFill {
                 background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #FF0000,
-                    stop:0.25 #FF4500,
-                    stop:0.5 #FF8C00,
-                    stop:0.75 #FFD700,
-                    stop:1 #FFFF00);
+                    stop:0 #60A5FA,
+                    stop:0.25 #3B82F6,
+                    stop:0.5 #2563EB,
+                    stop:0.75 #1D4ED8,
+                    stop:1 #1E40AF);
                 border: none;
                 border-radius: 4px;
                 margin: 2px;
@@ -229,11 +234,11 @@ class ModernFluentProgressBar(QtWidgets.QWidget):
         self._gradient_animation.setEndValue("""
             QWidget#progressFill {
                 background: qlineargradient(x1:1, y1:0, x2:0, y2:0,
-                    stop:0 #FF0000,
-                    stop:0.25 #FF4500,
-                    stop:0.5 #FF8C00,
-                    stop:0.75 #FFD700,
-                    stop:1 #FFFF00);
+                    stop:0 #60A5FA,
+                    stop:0.25 #3B82F6,
+                    stop:0.5 #2563EB,
+                    stop:0.75 #1D4ED8,
+                    stop:1 #1E40AF);
                 border: none;
                 border-radius: 4px;
                 margin: 2px;
@@ -302,24 +307,24 @@ class ModernFluentProgressBar(QtWidgets.QWidget):
             painter = QtGui.QPainter(self)
             painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
             
-            # Draw truck body (larger and more visible)
+            # Draw truck body with blue color to match theme
             truck_rect = self.rect()
-            painter.fillRect(truck_rect, QtGui.QColor(255, 255, 255))
+            painter.fillRect(truck_rect, QtGui.QColor(59, 130, 246))  # Blue color
             
             # Draw truck outline
-            painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0), 2))
+            painter.setPen(QtGui.QPen(QtGui.QColor(30, 58, 138), 2))  # Darker blue outline
             painter.drawRect(truck_rect)
             
             # Draw truck cabin
             cabin_rect = QtCore.QRect(12, 2, 8, 8)
-            painter.fillRect(cabin_rect, QtGui.QColor(200, 200, 200))
+            painter.fillRect(cabin_rect, QtGui.QColor(96, 165, 250))  # Lighter blue cabin
             painter.drawRect(cabin_rect)
             
             # Draw wheels (larger and more visible)
             wheel_rect1 = QtCore.QRect(3, 10, 5, 5)
             wheel_rect2 = QtCore.QRect(12, 10, 5, 5)
-            painter.fillEllipse(wheel_rect1, QtGui.QColor(0, 0, 0))
-            painter.fillEllipse(wheel_rect2, QtGui.QColor(0, 0, 0))
+            painter.fillEllipse(wheel_rect1, QtGui.QColor(30, 58, 138))  # Dark blue wheels
+            painter.fillEllipse(wheel_rect2, QtGui.QColor(30, 58, 138))
             
             # Draw wheel details
             painter.setPen(QtGui.QPen(QtGui.QColor(255, 255, 255), 1))
@@ -354,13 +359,57 @@ class CentralProgressOverlay(QtWidgets.QWidget):
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(16)
         
-        # Title with icon
-        self._title_label = QtWidgets.QLabel("⚡ Elaborazione in Corso")
+        # Title container with icon and text
+        title_container = QtWidgets.QWidget()
+        title_container.setObjectName("titleContainer")
+        title_container.setStyleSheet("""
+            QWidget#titleContainer {
+                background: transparent;
+                border: none;
+                margin: 0px;
+                padding: 0px;
+            }
+        """)
+        
+        title_layout = QtWidgets.QHBoxLayout(title_container)
+        title_layout.setContentsMargins(0, 0, 0, 0)
+        title_layout.setSpacing(12)
+        title_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        
+        # Loading GIF
+        self._loading_gif = QtWidgets.QLabel()
+        self._loading_gif.setObjectName("loadingGif")
+        self._loading_gif.setFixedSize(24, 24)
+        self._loading_gif.setScaledContents(True)
+        self._loading_gif.setStyleSheet("""
+            QLabel#loadingGif {
+                background: transparent;
+                border: none;
+                margin: 0px;
+                padding: 0px;
+            }
+        """)
+        
+        # Load and start the GIF animation
+        try:
+            import os
+            gif_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "loading.gif")
+            if os.path.exists(gif_path):
+                from PyQt6.QtGui import QMovie
+                self._movie = QMovie(gif_path)
+                self._movie.setScaledSize(QtCore.QSize(24, 24))
+                self._loading_gif.setMovie(self._movie)
+                self._movie.start()
+        except Exception as e:
+            print(f"Errore caricamento GIF: {e}")
+        
+        # Title text - CHANGED TO DARK TEXT
+        self._title_label = QtWidgets.QLabel("Elaborazione in Corso")
         self._title_label.setObjectName("overlayTitle")
         self._title_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self._title_label.setStyleSheet("""
             QLabel#overlayTitle {
-                color: rgba(255, 255, 255, 0.95);
+                color: #1E3A8A;
                 font-size: 18px;
                 font-weight: 700;
                 background: transparent;
@@ -371,16 +420,20 @@ class CentralProgressOverlay(QtWidgets.QWidget):
             }
         """)
         
+        # Add GIF and text to title layout
+        title_layout.addWidget(self._loading_gif)
+        title_layout.addWidget(self._title_label)
+        
         # Progress bar
         self._progress_bar = ModernFluentProgressBar()
         
-        # Status text
+        # Status text - CHANGED TO DARK TEXT
         self._status_label = QtWidgets.QLabel("Inizializzazione...")
         self._status_label.setObjectName("overlayStatus")
         self._status_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self._status_label.setStyleSheet("""
             QLabel#overlayStatus {
-                color: rgba(255, 255, 255, 0.7);
+                color: #374151;
                 font-size: 12px;
                 font-weight: 500;
                 background: transparent;
@@ -390,17 +443,17 @@ class CentralProgressOverlay(QtWidgets.QWidget):
             }
         """)
         
-        layout.addWidget(self._title_label)
+        layout.addWidget(title_container)
         layout.addWidget(self._progress_bar)
         layout.addWidget(self._status_label)
         
-        # Set up the glassmorphism background
+        # Set up the glassmorphism background - CHANGED TO LIGHT BACKGROUND
         self.setStyleSheet("""
             QWidget#centralProgressOverlay {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 rgba(0, 0, 0, 0.8),
-                    stop:1 rgba(0, 0, 0, 0.7));
-                border: 1px solid rgba(255, 255, 255, 0.2);
+                    stop:0 rgba(255, 255, 255, 0.95),
+                    stop:1 rgba(248, 250, 252, 0.95));
+                border: 2px solid rgba(59, 130, 246, 0.3);
                 border-radius: 20px;
             }
         """)
@@ -507,6 +560,9 @@ class CentralProgressOverlay(QtWidgets.QWidget):
     def stop_animations(self):
         """Stop all animations."""
         self._progress_bar.stop_animation()
+        # Stop GIF animation
+        if hasattr(self, '_movie') and self._movie:
+            self._movie.stop()
 
 class Windows11StatusDisplay(QtWidgets.QWidget):
     """Windows 11 style status display with modern animations."""
@@ -725,6 +781,29 @@ class CompactStatisticItem(QtWidgets.QWidget):
     def _load_qtawesome_icon(self, icon_name: str, color: str):
         """Load QtAwesome icon with custom color."""
         try:
+            # Check if it's a custom icon from icons folder
+            custom_icons = ["excel", "start", "stop", "trash", "home", "folder", "chrome", "controls", "statistics", "left", "right", "reload"]
+            if icon_name in custom_icons:
+                import os
+                # Handle GIF for statistics
+                if icon_name == "statistics":
+                    icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", f"{icon_name}.gif")
+                    if os.path.exists(icon_path):
+                        from PyQt6.QtGui import QMovie
+                        movie = QMovie(icon_path)
+                        movie.setScaledSize(QtCore.QSize(16, 16))
+                        self._icon_label.setMovie(movie)
+                        movie.start()
+                        return
+                else:
+                    icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", f"{icon_name}.png")
+                    if os.path.exists(icon_path):
+                        from PyQt6.QtGui import QIcon, QPixmap
+                        icon = QIcon(icon_path)
+                        pixmap = icon.pixmap(16, 16)
+                        self._icon_label.setPixmap(pixmap)
+                        return
+            
             icon = qta.icon(icon_name, color=color)
             self._icon_label.setPixmap(icon.pixmap(16, 16))
         except Exception as e:
@@ -779,152 +858,156 @@ class ModernButton(QtWidgets.QPushButton):
         if icon_name:
             self._load_qtawesome_icon(icon_name, button_type)
         
-        # Define liquid glass button styles based on type
+        # Define unified modern button styles with elegant hover effects
         styles = {
             "primary": f"""
                 QPushButton#modernButton_primary {{
                     background: {COLORS['accent_primary']};
                     color: white;
                     border: none;
-                    border-radius: 8px;
+                    border-radius: 10px;
                     font-size: 12px;
                     font-weight: 600;
-                    padding: 8px 16px;
-                    min-height: 32px;
+                    padding: 10px 24px;
+                    min-height: 36px;
                 }}
                 QPushButton#modernButton_primary:hover {{
                     background: {COLORS['accent_primary_alt']};
-                    border-radius: 8px;
+                    border-radius: 10px;
                 }}
                 QPushButton#modernButton_primary:pressed {{
-                    background: {COLORS['accent_primary']};
-                    border-radius: 8px;
+                    background: {COLORS['accent_primary_light']};
+                    border-radius: 10px;
                 }}
                 QPushButton#modernButton_primary:disabled {{
                     background: {COLORS['text_muted']};
                     color: {COLORS['bg_secondary']};
+                    border-radius: 10px;
                 }}
             """,
             "success": f"""
                 QPushButton#modernButton_success {{
-                    background: {COLORS['accent_secondary']};
+                    background: {COLORS['accent_primary']};
                     color: white;
                     border: none;
-                    border-radius: 8px;
+                    border-radius: 10px;
                     font-size: 12px;
                     font-weight: 600;
-                    padding: 8px 16px;
-                    min-height: 32px;
+                    padding: 10px 24px;
+                    min-height: 36px;
                 }}
                 QPushButton#modernButton_success:hover {{
-                    background: {COLORS['accent_secondary_alt']};
-                    border-radius: 8px;
+                    background: {COLORS['accent_primary_alt']};
+                    border-radius: 10px;
                 }}
                 QPushButton#modernButton_success:pressed {{
-                    background: {COLORS['accent_secondary']};
-                    border-radius: 8px;
+                    background: {COLORS['accent_primary_light']};
+                    border-radius: 10px;
                 }}
                 QPushButton#modernButton_success:disabled {{
                     background: {COLORS['text_muted']};
                     color: {COLORS['bg_secondary']};
+                    border-radius: 10px;
                 }}
             """,
             "danger": f"""
                 QPushButton#modernButton_danger {{
-                    background: {COLORS['accent_error']};
+                    background: {COLORS['accent_primary']};
                     color: white;
                     border: none;
-                    border-radius: 8px;
+                    border-radius: 10px;
                     font-size: 12px;
                     font-weight: 600;
-                    padding: 8px 16px;
-                    min-height: 32px;
+                    padding: 10px 24px;
+                    min-height: 36px;
                 }}
                 QPushButton#modernButton_danger:hover {{
-                    background: {COLORS['accent_error_alt']};
-                    border-radius: 8px;
+                    background: {COLORS['accent_primary_alt']};
+                    border-radius: 10px;
                 }}
                 QPushButton#modernButton_danger:pressed {{
-                    background: {COLORS['accent_error']};
-                    border-radius: 8px;
+                    background: {COLORS['accent_primary_light']};
+                    border-radius: 10px;
                 }}
                 QPushButton#modernButton_danger:disabled {{
                     background: {COLORS['text_muted']};
                     color: {COLORS['bg_secondary']};
+                    border-radius: 10px;
                 }}
             """,
             "secondary": f"""
                 QPushButton#modernButton_secondary {{
-                    background: {COLORS['glass_white']};
-                    color: {COLORS['text_primary']};
-                    border: 1px solid {COLORS['border']};
-                    border-radius: 8px;
-                    font-size: 11px;
-                    font-weight: 500;
-                    padding: 6px 12px;
-                    min-height: 28px;
+                    background: {COLORS['accent_primary']};
+                    color: white;
+                    border: none;
+                    border-radius: 10px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    padding: 10px 18px;
+                    min-height: 36px;
                 }}
                 QPushButton#modernButton_secondary:hover {{
-                    background: {COLORS['glass_highlight']};
-                    border: 1px solid {COLORS['border_light']};
-                    border-radius: 8px;
+                    background: {COLORS['accent_primary_alt']};
+                    border-radius: 10px;
                 }}
                 QPushButton#modernButton_secondary:pressed {{
-                    background: {COLORS['glass_white']};
-                    border: 1px solid {COLORS['border']};
-                    border-radius: 8px;
+                    background: {COLORS['accent_primary_light']};
+                    border-radius: 10px;
                 }}
                 QPushButton#modernButton_secondary:disabled {{
                     background: {COLORS['text_muted']};
                     color: {COLORS['bg_secondary']};
+                    border-radius: 10px;
                 }}
             """,
             "dhl": f"""
                 QPushButton#modernButton_dhl {{
-                    background: {COLORS['dhl_yellow']};
+                    background: {COLORS['accent_primary']};
                     color: white;
                     border: none;
-                    border-radius: 8px;
+                    border-radius: 10px;
                     font-size: 12px;
                     font-weight: 700;
-                    padding: 8px 16px;
-                    min-height: 32px;
+                    padding: 10px 24px;
+                    min-height: 36px;
                 }}
                 QPushButton#modernButton_dhl:hover {{
-                    background: {COLORS['dhl_yellow_dark']};
-                    border-radius: 8px;
+                    background: {COLORS['accent_primary_alt']};
+                    border-radius: 10px;
                 }}
                 QPushButton#modernButton_dhl:pressed {{
-                    background: {COLORS['dhl_yellow']};
-                    border-radius: 8px;
+                    background: {COLORS['accent_primary_light']};
+                    border-radius: 10px;
                 }}
                 QPushButton#modernButton_dhl:disabled {{
                     background: {COLORS['text_muted']};
                     color: {COLORS['bg_secondary']};
+                    border-radius: 10px;
                 }}
             """,
             "dhl_red": f"""
                 QPushButton#modernButton_dhl_red {{
-                    background: {COLORS['dhl_red']};
+                    background: {COLORS['accent_primary']};
                     color: white;
                     border: none;
-                    border-radius: 8px;
+                    border-radius: 10px;
                     font-size: 12px;
                     font-weight: 700;
-                    padding: 8px 16px;
-                    min-height: 32px;
+                    padding: 10px 24px;
+                    min-height: 36px;
                 }}
                 QPushButton#modernButton_dhl_red:hover {{
-                    background: #B0040E;
-                    border-radius: 8px;
+                    background: {COLORS['accent_primary_alt']};
+                    border-radius: 10px;
                 }}
                 QPushButton#modernButton_dhl_red:pressed {{
-                    background: {COLORS['dhl_red']};
-                    border-radius: 8px;
+                    background: {COLORS['accent_primary_light']};
+                    border-radius: 10px;
                 }}
                 QPushButton#modernButton_dhl_red:disabled {{
                     background: {COLORS['text_muted']};
                     color: {COLORS['bg_secondary']};
+                    border-radius: 10px;
                 }}
             """
         }
@@ -947,6 +1030,21 @@ class ModernButton(QtWidgets.QPushButton):
     def _load_qtawesome_icon(self, icon_name: str, button_type: str):
         """Load QtAwesome icon for button."""
         try:
+            # Check if it's a custom icon from icons folder
+            custom_icons = ["excel", "start", "stop", "trash", "home", "folder", "chrome", "controls", "statistics", "left", "right", "reload"]
+            if icon_name in custom_icons:
+                import os
+                # Handle GIF for statistics
+                if icon_name == "statistics":
+                    icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", f"{icon_name}.gif")
+                else:
+                    icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", f"{icon_name}.png")
+                if os.path.exists(icon_path):
+                    from PyQt6.QtGui import QIcon
+                    icon = QIcon(icon_path)
+                    self.setIcon(icon)
+                    return
+            
             # Choose color based on button type
             if button_type in ["primary", "success", "danger", "dhl", "dhl_red"]:
                 icon_color = "white"  # White for filled buttons including DHL
@@ -965,6 +1063,9 @@ class WebNavButton(QtWidgets.QPushButton):
         self.setObjectName("webNavButton")
         self.setFixedSize(40, 36)
         
+        # Store icon name
+        self._icon_name = icon_name
+        
         # Load QtAwesome icon
         self._load_qtawesome_icon(icon_name)
         
@@ -972,54 +1073,134 @@ class WebNavButton(QtWidgets.QPushButton):
             QPushButton#webNavButton {{
                 background: transparent;
                 color: {COLORS['text_primary']};
-                border: none;
-                border-radius: 6px;
-                font-size: 14px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 8px;
+                font-size: 16px;
                 font-weight: 500;
-                padding: 6px;
-            }}
-            QPushButton#webNavButton:hover {{
-                background: rgba(255, 255, 255, 0.1);
-                border: none;
-                border-radius: 6px;
-            }}
-            QPushButton#webNavButton:pressed {{
-                background: rgba(255, 255, 255, 0.2);
-                color: {COLORS['text_primary']};
-                border: none;
-                border-radius: 6px;
+                padding: 0px;
+                min-width: 40px;
+                min-height: 36px;
             }}
         """)
+    
+
     
     def _load_qtawesome_icon(self, icon_name: str):
         """Load QtAwesome icon for navigation button."""
         try:
+            # Check if it's a custom icon from icons folder
+            custom_icons = ["excel", "start", "stop", "trash", "home", "folder", "chrome", "controls", "statistics", "left", "right", "reload"]
+            if icon_name in custom_icons:
+                import os
+                # Handle GIF for statistics
+                if icon_name == "statistics":
+                    icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", f"{icon_name}.gif")
+                else:
+                    icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", f"{icon_name}.png")
+                if os.path.exists(icon_path):
+                    from PyQt6.QtGui import QIcon, QPixmap
+                    icon = QIcon(icon_path)
+                    # Scale icon to 24x24
+                    pixmap = icon.pixmap(24, 24)
+                    self.setIcon(QIcon(pixmap))
+                    return
+            
             icon = qta.icon(icon_name, color=COLORS['text_primary'])
-            self.setIcon(icon)
+            # Scale QtAwesome icon to 24x24
+            pixmap = icon.pixmap(24, 24)
+            self.setIcon(QIcon(pixmap))
         except Exception as e:
             pass  # Fallback to text only
     
     def get_qtawesome_icon(self, icon_name: str):
         """Get QtAwesome icon without setting it."""
         try:
+            # Check if it's a custom icon from icons folder
+            custom_icons = ["excel", "start", "stop", "trash", "home", "folder", "chrome", "controls", "statistics", "left", "right", "reload"]
+            if icon_name in custom_icons:
+                import os
+                # Handle GIF for statistics
+                if icon_name == "statistics":
+                    icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", f"{icon_name}.gif")
+                else:
+                    icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", f"{icon_name}.png")
+                if os.path.exists(icon_path):
+                    from PyQt6.QtGui import QIcon
+                    return QIcon(icon_path)
+            
             return qta.icon(icon_name, color=COLORS['text_primary'])
         except Exception as e:
             return None
 
-class SignatureLabel(QtWidgets.QLabel):
-    """Simple signature label with maximum contrast."""
+class SignatureLabel(QtWidgets.QWidget):
+    """Simple signature label with love.gif icon."""
     def __init__(self, parent=None):
-        super().__init__("Made with ❤️ by ST", parent)
+        super().__init__(parent)
         self.setObjectName("signatureLabel")
 
-        self.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.setStyleSheet(f"""
-            QLabel#signatureLabel {{
+        # Create horizontal layout
+        layout = QtWidgets.QHBoxLayout(self)
+        layout.setSpacing(4)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+
+        # "Made with" text
+        made_with_label = QtWidgets.QLabel("Made with")
+        made_with_label.setStyleSheet(f"""
+            QLabel {{
                 background: transparent;
                 color: rgba(0, 0, 0, 0.9);
                 font-size: 10px;
                 font-weight: 600;
                 padding: 0px;
+                border: none;
+                border-radius: 0px;
+            }}
+        """)
+
+        # Love GIF icon
+        love_icon_label = QtWidgets.QLabel()
+        love_icon_label.setFixedSize(12, 12)
+        love_icon_label.setStyleSheet("background: transparent; border: none; padding: 0; margin: 0;")
+        love_icon_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        
+        # Load love.gif
+        try:
+            import os
+            love_icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "love.gif")
+            if os.path.exists(love_icon_path):
+                from PyQt6.QtGui import QMovie
+                movie = QMovie(love_icon_path)
+                movie.setScaledSize(QtCore.QSize(12, 12))
+                love_icon_label.setMovie(movie)
+                movie.start()
+        except Exception as e:
+            # Fallback to heart emoji
+            love_icon_label.setText("❤️")
+
+        # "by ST" text
+        by_st_label = QtWidgets.QLabel("by ST")
+        by_st_label.setStyleSheet(f"""
+            QLabel {{
+                background: transparent;
+                color: rgba(0, 0, 0, 0.9);
+                font-size: 10px;
+                font-weight: 600;
+                padding: 0px;
+                border: none;
+                border-radius: 0px;
+            }}
+        """)
+
+        # Add widgets to layout
+        layout.addWidget(made_with_label)
+        layout.addWidget(love_icon_label)
+        layout.addWidget(by_st_label)
+
+        # Set widget style
+        self.setStyleSheet(f"""
+            QWidget#signatureLabel {{
+                background: transparent;
                 border: none;
                 border-radius: 0px;
             }}
@@ -1250,8 +1431,52 @@ class UIManager(QtCore.QObject):
     def _create_file_section(self, parent_layout):
         """Create file selection section with elegant design."""
         # File selection title
-        file_title = SectionTitle("📁 Selezione File")
-        parent_layout.addWidget(file_title)
+        file_title = SectionTitle("Selezione File")
+        # Add folder icon to the title
+        file_title.setStyleSheet(f"""
+            QLabel#sectionTitle {{
+                background: transparent;
+                color: {COLORS['title_accent']};
+                font-size: 14px;
+                font-weight: 700;
+                margin: 24px 0 12px 0;
+                padding: 0 0 4px 0;
+                letter-spacing: 0.3px;
+                border: none;
+            }}
+        """)
+        
+        # Create icon label
+        icon_label = QtWidgets.QLabel()
+        icon_label.setFixedSize(20, 20)
+        icon_label.setScaledContents(True)
+        icon_label.setStyleSheet("background: transparent; border: none; margin: 2px 0 0 0; padding: 0;")
+        icon_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        
+        # Load folder icon
+        try:
+            import os
+            icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "folder.png")
+            if os.path.exists(icon_path):
+                from PyQt6.QtGui import QPixmap
+                pixmap = QPixmap(icon_path)
+                icon_label.setPixmap(pixmap.scaled(20, 20, QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.TransformationMode.SmoothTransformation))
+        except Exception as e:
+            pass
+        
+        # Create a container for title with icon
+        title_container = QtWidgets.QWidget()
+        title_container.setStyleSheet("background: transparent; border: none; margin: 0; padding: 0;")
+        title_layout = QtWidgets.QHBoxLayout(title_container)
+        title_layout.setContentsMargins(0, 0, 0, 0)
+        title_layout.setSpacing(8)
+        title_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignTop)
+        
+        title_layout.addWidget(icon_label)
+        title_layout.addWidget(file_title)
+        title_layout.addStretch()
+        
+        parent_layout.addWidget(title_container)
         
         # Create a container for the file selection area
         self._file_selection_container = QtWidgets.QFrame()
@@ -1272,7 +1497,7 @@ class UIManager(QtCore.QObject):
         container_layout.setContentsMargins(0, 0, 0, 0)
         
         # File selection button
-        self._select_file_button = ModernButton("Seleziona File Excel", "primary", ICONS['file'])
+        self._select_file_button = ModernButton("Seleziona File Excel", "primary", ICONS['excel'])
         
         # File display area (initially hidden)
         self._file_display_area = QtWidgets.QFrame()
@@ -1343,8 +1568,52 @@ class UIManager(QtCore.QObject):
     def _create_controls_section(self, parent_layout):
         """Create controls section with QtAwesome icons and improved spacing."""
         # Controls title
-        controls_title = SectionTitle("🎮 Controlli")
-        parent_layout.addWidget(controls_title)
+        controls_title = SectionTitle("Controlli")
+        # Add controls icon to the title
+        controls_title.setStyleSheet(f"""
+            QLabel#sectionTitle {{
+                background: transparent;
+                color: {COLORS['title_accent']};
+                font-size: 14px;
+                font-weight: 700;
+                margin: 24px 0 12px 0;
+                padding: 0 0 4px 0;
+                letter-spacing: 0.3px;
+                border: none;
+            }}
+        """)
+        
+        # Create icon label
+        controls_icon_label = QtWidgets.QLabel()
+        controls_icon_label.setFixedSize(20, 20)
+        controls_icon_label.setScaledContents(True)
+        controls_icon_label.setStyleSheet("background: transparent; border: none; margin: 2px 0 0 0; padding: 0;")
+        controls_icon_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        
+        # Load controls icon
+        try:
+            import os
+            icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "controls.png")
+            if os.path.exists(icon_path):
+                from PyQt6.QtGui import QPixmap
+                pixmap = QPixmap(icon_path)
+                controls_icon_label.setPixmap(pixmap.scaled(20, 20, QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.TransformationMode.SmoothTransformation))
+        except Exception as e:
+            pass
+        
+        # Create a container for title with icon
+        controls_title_container = QtWidgets.QWidget()
+        controls_title_container.setStyleSheet("background: transparent; border: none; margin: 0; padding: 0;")
+        controls_title_layout = QtWidgets.QHBoxLayout(controls_title_container)
+        controls_title_layout.setContentsMargins(0, 0, 0, 0)
+        controls_title_layout.setSpacing(8)
+        controls_title_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignTop)
+        
+        controls_title_layout.addWidget(controls_icon_label)
+        controls_title_layout.addWidget(controls_title)
+        controls_title_layout.addStretch()
+        
+        parent_layout.addWidget(controls_title_container)
         
         # Create grid layout for 4 equal-sized buttons (2x2)
         button_grid = QtWidgets.QGridLayout()
@@ -1352,7 +1621,7 @@ class UIManager(QtCore.QObject):
         button_grid.setContentsMargins(0, 0, 0, 0)
         
         # Start button with DHL yellow and plane icon
-        self._start_button = ModernButton("Avvia", "dhl", ICONS['play'])
+        self._start_button = ModernButton("Start", "dhl", ICONS['play'])
         
         # Stop button with DHL red
         self._stop_button = ModernButton("Stop", "dhl_red", ICONS['stop'])
@@ -1361,7 +1630,7 @@ class UIManager(QtCore.QObject):
         self._clear_log_button = ModernButton("Pulisci", "secondary", ICONS['trash'])
         
         # Open NSIS button with QtAwesome icon
-        self._open_nsis_button = ModernButton("NSIS", "secondary", ICONS['home'])
+        self._open_nsis_button = ModernButton("NSIS", "secondary", ICONS['home'])  # Use home icon
         
         # Add buttons to grid (2x2 layout)
         button_grid.addWidget(self._start_button, 0, 0)      # Top-left
@@ -1373,9 +1642,29 @@ class UIManager(QtCore.QObject):
 
     def _create_statistics_section(self, parent_layout):
         """Create statistics section with QtAwesome icons."""
-        # Statistics title
-        stats_title = SectionTitle("📊 Statistiche")
-        parent_layout.addWidget(stats_title)
+        # Statistics title with stati.gif icon
+        stats_title_layout = QtWidgets.QHBoxLayout()
+        stats_title_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignTop)
+        
+        # Add stati.gif icon
+        stati_icon_label = QtWidgets.QLabel()
+        import os
+        stati_icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "stati.gif")
+        if os.path.exists(stati_icon_path):
+            from PyQt6.QtGui import QMovie
+            movie = QMovie(stati_icon_path)
+            movie.setScaledSize(QtCore.QSize(20, 20))
+            stati_icon_label.setMovie(movie)
+            movie.start()
+        stati_icon_label.setFixedSize(20, 20)
+        stati_icon_label.setStyleSheet("background: transparent; border: none; margin: 2px 0 0 0; padding: 0;")
+        stati_icon_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        
+        stats_title = SectionTitle("Statistiche")
+        
+        stats_title_layout.addWidget(stati_icon_label)
+        stats_title_layout.addWidget(stats_title)
+        parent_layout.addLayout(stats_title_layout)
         
         # Create compact statistics in a vertical list
         stats_layout = QtWidgets.QVBoxLayout()
@@ -1384,12 +1673,12 @@ class UIManager(QtCore.QObject):
         
         # Create statistics with QtAwesome icons
         statistic_configs = [
-            (ICONS['alert'], "Annullate", COLORS['accent_warning'], "Richieste annullate"),
-            (ICONS['folder'], "Aperte", COLORS['accent_secondary'], "Richieste aperte"),
-            (ICONS['check'], "Chiuse", COLORS['accent_secondary'], "Richieste chiuse"),
-            (ICONS['settings'], "Lavorazione", COLORS['accent_warning'], "Richieste in lavorazione"),
-            (ICONS['send'], "Inviate", COLORS['accent_info'], "Richieste inviate"),
-            (ICONS['alert'], "Eccezioni", COLORS['accent_error'], "Errori ed eccezioni")
+            (ICONS['statistics'], "Annullate", COLORS['accent_warning'], "Richieste annullate"),
+            (ICONS['statistics'], "Aperte", COLORS['accent_secondary'], "Richieste aperte"),
+            (ICONS['statistics'], "Chiuse", COLORS['accent_secondary'], "Richieste chiuse"),
+            (ICONS['statistics'], "Lavorazione", COLORS['accent_warning'], "Richieste in lavorazione"),
+            (ICONS['statistics'], "Inviate", COLORS['accent_info'], "Richieste inviate"),
+            (ICONS['statistics'], "Eccezioni", COLORS['accent_error'], "Errori ed eccezioni")
         ]
         
         for icon_name, label, color, tooltip in statistic_configs:
@@ -1435,8 +1724,52 @@ class UIManager(QtCore.QObject):
     def _create_web_area(self, parent_layout):
         """Create web view area with QtAwesome navigation controls and improved spacing."""
         # Web title
-        web_title = SectionTitle("🌐 Browser NSIS")
-        parent_layout.addWidget(web_title)
+        web_title = SectionTitle("Browser NSIS")
+        # Add chrome icon to the title
+        web_title.setStyleSheet(f"""
+            QLabel#sectionTitle {{
+                background: transparent;
+                color: {COLORS['title_accent']};
+                font-size: 14px;
+                font-weight: 700;
+                margin: 24px 0 12px 0;
+                padding: 0 0 4px 0;
+                letter-spacing: 0.3px;
+                border: none;
+            }}
+        """)
+        
+        # Create icon label
+        chrome_icon_label = QtWidgets.QLabel()
+        chrome_icon_label.setFixedSize(20, 20)
+        chrome_icon_label.setScaledContents(True)
+        chrome_icon_label.setStyleSheet("background: transparent; border: none; margin: 2px 0 0 0; padding: 0;")
+        chrome_icon_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        
+        # Load chrome icon
+        try:
+            import os
+            icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "icons", "chrome.png")
+            if os.path.exists(icon_path):
+                from PyQt6.QtGui import QPixmap
+                pixmap = QPixmap(icon_path)
+                chrome_icon_label.setPixmap(pixmap.scaled(20, 20, QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.TransformationMode.SmoothTransformation))
+        except Exception as e:
+            pass
+        
+        # Create a container for title with icon
+        chrome_title_container = QtWidgets.QWidget()
+        chrome_title_container.setStyleSheet("background: transparent; border: none; margin: 0; padding: 0;")
+        chrome_title_layout = QtWidgets.QHBoxLayout(chrome_title_container)
+        chrome_title_layout.setContentsMargins(0, 0, 0, 0)
+        chrome_title_layout.setSpacing(8)
+        chrome_title_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignTop)
+        
+        chrome_title_layout.addWidget(chrome_icon_label)
+        chrome_title_layout.addWidget(web_title)
+        chrome_title_layout.addStretch()
+        
+        parent_layout.addWidget(chrome_title_container)
         
         # Web navigation controls with bottom margin
         nav_container = QtWidgets.QWidget()
@@ -1451,10 +1784,10 @@ class UIManager(QtCore.QObject):
         nav_layout.setSpacing(8)  # Increased spacing between buttons
         nav_layout.setContentsMargins(0, 0, 0, 12)  # Bottom margin to separate from web view
         
-        # Navigation buttons with QtAwesome icons
-        self._back_btn = WebNavButton(ICONS['arrow_left'])
-        self._forward_btn = WebNavButton(ICONS['arrow_right'])
-        self._reload_btn = WebNavButton(ICONS['rotate'])
+        # Navigation buttons with custom icons
+        self._back_btn = WebNavButton('left')  # Use custom left icon
+        self._forward_btn = WebNavButton('right')  # Use custom right icon
+        self._reload_btn = WebNavButton('reload')  # Use custom reload icon
         
         nav_layout.addWidget(self._back_btn)
         nav_layout.addWidget(self._forward_btn)
@@ -2076,7 +2409,7 @@ class UIManager(QtCore.QObject):
             # Update button state
             if self._start_button:
                 self._start_button.setEnabled(True)
-                self._start_button.setText("Avvia Elaborazione")
+                self._start_button.setText("Start")
     
     def _show_file_display_animation(self):
         """Show the file display area with smooth animation."""
@@ -2176,7 +2509,7 @@ class UIManager(QtCore.QObject):
             # Disable start button
             if self._start_button:
                 self._start_button.setEnabled(False)
-                self._start_button.setText("Avvia Elaborazione")
+                self._start_button.setText("Start")
     
     def update_progress(self, current: int, maximum: int):
         """Update central progress overlay with animations."""
@@ -2216,9 +2549,25 @@ class UIManager(QtCore.QObject):
     
     def update_badge(self, badge_prefix: str, count: int):
         """Update statistic count."""
-        badge_key = badge_prefix.lower()
-        if badge_key in self._statistic_widgets:
-            self._statistic_widgets[badge_key].set_count(count)
+        # Extract the text part after emoji (e.g., "🟡 Annullate" -> "annullate")
+        import re
+        from PyQt6 import QtWidgets
+        
+        # Remove emoji and extract text, then convert to lowercase
+        text_part = re.sub(r'[^\w\s]', '', badge_prefix).strip().lower()
+        
+        if text_part in self._statistic_widgets:
+            self._statistic_widgets[text_part].set_count(count)
+            # Force UI update
+            QtWidgets.QApplication.processEvents()
+        else:
+            # Fallback: try to find by partial match
+            for key in self._statistic_widgets.keys():
+                if key in text_part or text_part in key:
+                    self._statistic_widgets[key].set_count(count)
+                    # Force UI update
+                    QtWidgets.QApplication.processEvents()
+                    break
     
     def reset_badges(self):
         """Reset all statistics to zero."""
@@ -2229,7 +2578,7 @@ class UIManager(QtCore.QObject):
         """Set the UI to processing or idle state."""
         if self._start_button:
             self._start_button.setEnabled(not is_processing)
-            self._start_button.setText("Elaborazione..." if is_processing else "Avvia Elaborazione")
+            self._start_button.setText("Elaborazione..." if is_processing else "Start")
         
         if self._stop_button:
             self._stop_button.setEnabled(is_processing)
