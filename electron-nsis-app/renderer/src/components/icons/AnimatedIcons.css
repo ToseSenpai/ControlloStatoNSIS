@@ -1,0 +1,328 @@
+/**
+ * Stili per Icone Animate
+ * Animazioni CSS moderne che sostituiscono i GIF legacy
+ */
+
+/* ============================================
+   ANIMAZIONE LOADING (sostituisce loading.gif)
+   ============================================ */
+
+.icon-loading {
+  animation: icon-rotate 1s linear infinite;
+}
+
+@keyframes icon-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   ANIMAZIONE LOVE (sostituisce love.gif)
+   ============================================ */
+
+.icon-love {
+  animation: icon-heartbeat 1.2s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes icon-heartbeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  10%, 30% {
+    transform: scale(1.2);
+  }
+  20%, 40% {
+    transform: scale(1.1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+}
+
+/* ============================================
+   ANIMAZIONE STATI (sostituisce stati.gif)
+   ============================================ */
+
+.icon-stati-container {
+  display: inline-block;
+}
+
+.icon-stati {
+  animation: icon-float 2s ease-in-out infinite;
+}
+
+@keyframes icon-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* ============================================
+   ANIMAZIONE STATISTICS (sostituisce statistics.gif)
+   ============================================ */
+
+.icon-statistics-container {
+  display: inline-block;
+}
+
+.icon-statistics {
+  animation: icon-pulse-scale 2s ease-in-out infinite;
+}
+
+@keyframes icon-pulse-scale {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+/* ============================================
+   LOADING DOTS - Animazione alternativa
+   ============================================ */
+
+.loading-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.loading-dots .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: currentColor;
+  animation: dot-bounce 1.4s ease-in-out infinite;
+}
+
+.loading-dots .dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.loading-dots .dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+.loading-dots .dot:nth-child(3) {
+  animation-delay: 0s;
+}
+
+@keyframes dot-bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   ANIMAZIONI GENERICHE RIUTILIZZABILI
+   ============================================ */
+
+/* Pulse - Pulsazione */
+.icon-pulse {
+  animation: icon-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes icon-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Spin - Rotazione */
+.icon-spin {
+  animation: icon-rotate 1s linear infinite;
+}
+
+/* Bounce - Rimbalzo */
+.icon-bounce {
+  animation: icon-bounce 1s infinite;
+}
+
+@keyframes icon-bounce {
+  0%, 100% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+/* Shake - Scuotimento */
+.icon-shake {
+  animation: icon-shake 0.5s ease-in-out;
+}
+
+@keyframes icon-shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-4px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(4px);
+  }
+}
+
+/* Fade In - Dissolvenza in entrata */
+.icon-fade-in {
+  animation: icon-fade-in 0.3s ease-in;
+}
+
+@keyframes icon-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Slide In From Top */
+.icon-slide-in-top {
+  animation: icon-slide-in-top 0.3s ease-out;
+}
+
+@keyframes icon-slide-in-top {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Slide In From Bottom */
+.icon-slide-in-bottom {
+  animation: icon-slide-in-bottom 0.3s ease-out;
+}
+
+@keyframes icon-slide-in-bottom {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   STATES - Stati interattivi
+   ============================================ */
+
+/* Hover Effects */
+.icon-hover-grow {
+  transition: transform 0.2s ease;
+}
+
+.icon-hover-grow:hover {
+  transform: scale(1.1);
+}
+
+.icon-hover-rotate {
+  transition: transform 0.3s ease;
+}
+
+.icon-hover-rotate:hover {
+  transform: rotate(15deg);
+}
+
+.icon-hover-color {
+  transition: color 0.2s ease;
+}
+
+/* Active/Click Effects */
+.icon-active-shrink:active {
+  transform: scale(0.95);
+}
+
+/* ============================================
+   PERFORMANCE OPTIMIZATIONS
+   ============================================ */
+
+/* Usa transform e opacity per animazioni smooth */
+.icon-loading,
+.icon-love,
+.icon-stati,
+.icon-statistics,
+.icon-pulse,
+.icon-spin,
+.icon-bounce {
+  will-change: transform;
+}
+
+/* Reduce motion per utenti con preferenze accessibilità */
+@media (prefers-reduced-motion: reduce) {
+  .icon-loading,
+  .icon-love,
+  .icon-stati,
+  .icon-statistics,
+  .icon-pulse,
+  .icon-spin,
+  .icon-bounce,
+  .loading-dots .dot {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================
+   DARK MODE SUPPORT
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+  .loading-dots .dot {
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+}
+
+/* ============================================
+   UTILITIES
+   ============================================ */
+
+/* Pausa animazione quando non visibile */
+.icon-paused {
+  animation-play-state: paused !important;
+}
+
+/* Velocità animazioni alternative */
+.icon-slow {
+  animation-duration: 3s !important;
+}
+
+.icon-fast {
+  animation-duration: 0.5s !important;
+}
+
+/* Direzione inversa */
+.icon-reverse {
+  animation-direction: reverse !important;
+}

@@ -3,7 +3,7 @@
  */
 
 import { BrowserWindow } from 'electron';
-import { playwrightAutomation } from '../automation/playwright-automation';
+import { webViewAutomation } from '../automation/webview-automation';
 import { ProcessingResult } from '../../shared/types/excel-types';
 
 export interface BadgeStats {
@@ -19,6 +19,7 @@ export class ProcessingOrchestrator {
   private isProcessing: boolean = false;
   private shouldStop: boolean = false;
   private mainWindow: BrowserWindow | null = null;
+  private webViewContentsId: number | null = null;
   private results: ProcessingResult[] = [];
   private badges: BadgeStats = {
     annullate: 0,
@@ -37,6 +38,14 @@ export class ProcessingOrchestrator {
   }
 
   /**
+   * Set webview webContents ID for automation
+   */
+  setWebViewContentsId(webContentsId: number): void {
+    console.log('[Processor] Set webview webContents ID:', webContentsId);
+    this.webViewContentsId = webContentsId;
+  }
+
+  /**
    * Start processing codes
    */
   async startProcessing(codes: string[]): Promise<ProcessingResult[]> {
@@ -52,13 +61,18 @@ export class ProcessingOrchestrator {
     this.resetBadges();
 
     try {
-      // Initialize Playwright
-      await playwrightAutomation.initialize();
+      // Check if webview webContents ID is set
+      if (!this.webViewContentsId) {
+        throw new Error('WebView not registered. Please navigate to a page first.');
+      }
+
+      // Initialize WebView automation with the visible webview's webContents ID
+      await webViewAutomation.initialize(this.webViewContentsId);
 
       // Send initial progress
       this.sendProgress(0, codes.length);
       this.sendStatus('Inizializzazione completata');
-      this.sendLog('Browser inizializzato, avvio elaborazione...');
+      this.sendLog('WebView inizializzata, avvio elaborazione...');
 
       // Process each code
       for (let i = 0; i < codes.length; i++) {
@@ -74,11 +88,11 @@ export class ProcessingOrchestrator {
 
         try {
           // Fetch state for code
-          const fetchResult = await playwrightAutomation.fetchStateForCode(code);
+          const fetchResult = await webViewAutomation.fetchStateForCode(code);
 
           if (fetchResult.success && fetchResult.cells) {
             // Parse result
-            const result = playwrightAutomation.parseCellsToResult(code, fetchResult.cells);
+            const result = webViewAutomation.parseCellsToResult(code, fetchResult.cells);
             this.results.push(result);
 
             // Update badges
@@ -90,15 +104,20 @@ export class ProcessingOrchestrator {
             // Log failure
             this.sendLog(`✗ ${code}: ${fetchResult.error || 'Errore sconosciuto'}`);
 
-            // Create error result
+            // Create error result with all 11 columns
             const errorResult: ProcessingResult = {
               'Input Code': code,
+              'Taric': '',
               'Stato': 'ERRORE',
+              'Protocollo ingresso': '',
+              'Inserita il': '',
               'Protocollo uscita': '',
               'Provvedimento': '',
               'Data Provvedimento': '',
               'Codice richiesta (risultato)': '',
-              'Note Usmaf': fetchResult.error || 'Errore durante elaborazione'
+              'Tipo pratica': '',
+              'Note Usmaf': fetchResult.error || 'Errore durante elaborazione',
+              'Invio SUD': ''
             };
             this.results.push(errorResult);
             this.badges.eccezioni++;
@@ -108,15 +127,20 @@ export class ProcessingOrchestrator {
           const errorMessage = error instanceof Error ? error.message : 'Errore sconosciuto';
           this.sendLog(`✗ ${code}: ${errorMessage}`);
 
-          // Create error result
+          // Create error result with all 11 columns
           const errorResult: ProcessingResult = {
             'Input Code': code,
+            'Taric': '',
             'Stato': 'ERRORE',
+            'Protocollo ingresso': '',
+            'Inserita il': '',
             'Protocollo uscita': '',
             'Provvedimento': '',
             'Data Provvedimento': '',
             'Codice richiesta (risultato)': '',
-            'Note Usmaf': errorMessage
+            'Tipo pratica': '',
+            'Note Usmaf': errorMessage,
+            'Invio SUD': ''
           };
           this.results.push(errorResult);
           this.badges.eccezioni++;
@@ -137,6 +161,10 @@ export class ProcessingOrchestrator {
         this.sendLog(`Elaborazione completata: ${this.results.length}/${codes.length} codici processati`);
         this.sendStatus('Elaborazione completata');
         this.sendProcessingComplete();
+
+        // Show custom completion dialog
+        const message = `Processati ${this.results.length} codici su ${codes.length} totali.\n\nI risultati sono stati salvati nel file Excel.`;
+        this.sendCompletionDialog(message);
       }
 
       return this.results;
@@ -150,7 +178,7 @@ export class ProcessingOrchestrator {
 
     } finally {
       // Cleanup
-      await playwrightAutomation.cleanup();
+      await webViewAutomation.cleanup();
       this.isProcessing = false;
       console.log('[Processor] Processing finished');
     }
@@ -249,6 +277,15 @@ export class ProcessingOrchestrator {
   private sendProcessingComplete(): void {
     if (this.mainWindow && !this.mainWindow.isDestroyed()) {
       this.mainWindow.webContents.send('processing-complete');
+    }
+  }
+
+  /**
+   * Send completion dialog event to renderer
+   */
+  private sendCompletionDialog(message: string): void {
+    if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+      this.mainWindow.webContents.send('show-completion-dialog', message);
     }
   }
 

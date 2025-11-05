@@ -1,0 +1,65 @@
+GUIDA RAPIDA MIGRAZIONE ICONE LEGACY → MODERNE
+{'=' * 60}
+
+Se hai codice che usava le vecchie icone PNG/GIF, ecco come migrare:
+
+1. IMPORT SISTEMA ICONE
+   Prima (legacy):
+     <img src="icons/excel.png" width="48" height="48" />
+
+   Dopo (moderno):
+     import { Icons } from '@icons';
+     <Icons.File.Excel size={48} />
+
+2. ANIMAZIONI GIF → SVG
+   Prima (legacy):
+     <img src="icons/loading.gif" />
+
+   Dopo (moderno):
+     import { LoadingIcon } from '@icons/AnimatedIcons';
+     <LoadingIcon size={48} />
+
+3. TABELLA CONVERSIONE COMPLETA
+
+   | File Legacy         | Componente Moderno              |
+   |---------------------|----------------------------------|
+   | chrome.png          | Icons.Browser.Chrome            |
+   | close.png           | Icons.Window.Close              |
+   | controls.png        | Icons.Control.Controls          |
+   | excel.png           | Icons.File.Excel                |
+   | folder.png          | Icons.File.Folder               |
+   | home.png            | Icons.Navigation.Home           |
+   | large.png           | Icons.Window.Large              |
+   | minimize.png        | Icons.Window.Minimize           |
+   | start.png           | Icons.Media.Start               |
+   | stop.png            | Icons.Media.Stop                |
+   | trash.png           | Icons.Utility.Trash             |
+   | loading.gif         | LoadingIcon (AnimatedIcons)     |
+   | love.gif            | LoveIcon (AnimatedIcons)        |
+   | stati.gif           | StatiIcon (AnimatedIcons)       |
+   | statistics.gif      | StatisticsIcon (AnimatedIcons)  |
+
+4. ESEMPI PRATICI
+
+   // File Excel con colore verde
+   <Icons.File.Excel size={24} color="#22c55e" />
+
+   // Loading spinner animato
+   <LoadingIcon size={48} color="#2563eb" />
+
+   // Icona con dimensione standard
+   import { IconSizes } from '@icons';
+   <Icons.Media.Start size={IconSizes.xl} />
+
+5. VANTAGGI DEL NUOVO SISTEMA
+   ✓ Qualità perfetta su display HiDPI/Retina
+   ✓ Bundle size ridotto del 90%
+   ✓ Facile manutenzione (sistema centralizzato)
+   ✓ Animazioni CSS controllabili
+   ✓ Tree-shaking automatico
+
+Per documentazione completa:
+→ electron-nsis-app/assets/ICONS_README.md
+
+Per showcase interattivo:
+→ electron-nsis-app/renderer/src/components/icons/IconShowcase.tsx

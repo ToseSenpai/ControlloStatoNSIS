@@ -67,6 +67,17 @@ ipcMain.handle('save-excel', async (_event, filePath: string, data: any) => {
 import { processingOrchestrator } from './workers/processor';
 import { excelHandler as excelHandlerInstance } from './excel/excel-handler';
 
+// Store the webview webContents ID for automation
+let webviewWebContentsId: number | null = null;
+
+// Register webview webContents ID
+ipcMain.on('register-webview', (_event, webContentsId: number) => {
+  console.log('[IPC] Registered webview webContents ID:', webContentsId);
+  webviewWebContentsId = webContentsId;
+  // Pass it to the processor
+  processingOrchestrator.setWebViewContentsId(webContentsId);
+});
+
 // Processing handlers
 ipcMain.on('start-processing', async (_event, codes: string[]) => {
   console.log('[IPC] Start processing codes:', codes.length);

@@ -6,7 +6,9 @@ import './ProgressOverlay.css';
 const ProgressOverlay: React.FC = () => {
   const { progress } = useSelector((state: RootState) => state.ui);
 
-  if (!progress.isProcessing) return null;
+  // Don't show overlay if not processing OR if progress is still at 0%
+  // (wait until actual processing starts before showing the dialog)
+  if (!progress.isProcessing || progress.current === 0) return null;
 
   return (
     <div className="progress-overlay">

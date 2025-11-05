@@ -9,7 +9,17 @@
     "rootDir": ".",
     "moduleResolution": "node",
     "noEmit": false,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["renderer/src/*"],
+      "@renderer/*": ["renderer/src/*"],
+      "@shared/*": ["shared/*"],
+      "@main/*": ["main/*"],
+      "@components/*": ["renderer/src/components/*"],
+      "@icons": ["renderer/src/components/icons"],
+      "@icons/*": ["renderer/src/components/icons/*"]
+    }
   },
   "include": ["renderer/**/*", "shared/**/*"],
   "exclude": ["node_modules", "dist", "main"]

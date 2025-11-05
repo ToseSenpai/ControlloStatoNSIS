@@ -37,7 +37,7 @@ export class PlaywrightAutomation {
 
       // Launch browser in headless mode for production
       this.browser = await chromium.launch({
-        headless: false, // Set to true for production
+        headless: true, // Headless mode - fallback only if WebView fails
         args: [
           '--disable-blink-features=AutomationControlled',
           '--no-sandbox',
@@ -57,6 +57,9 @@ export class PlaywrightAutomation {
       // Navigate to NSIS URL
       console.log(`[Playwright] Navigating to ${URL_NSIS}`);
       await this.page.goto(URL_NSIS, { waitUntil: 'networkidle', timeout: 30000 });
+
+      // Setup link click interceptor
+      await this.setupLinkClickInterceptor();
 
       this.isInitialized = true;
       console.log('[Playwright] Initialization complete');
@@ -124,6 +127,69 @@ export class PlaywrightAutomation {
   }
 
   /**
+   * Setup link click interceptor to prevent new windows/tabs
+   * This intercepts all clicks on links and forces navigation in the same page
+   */
+  private async setupLinkClickInterceptor(): Promise<void> {
+    if (!this.page) return;
+
+    try {
+      console.log('[Playwright] Setting up link click interceptor...');
+
+      // @ts-ignore - Code runs in browser context with DOM
+      await this.page.evaluate(() => {
+        // @ts-ignore - Browser context
+        // Remove any existing interceptor to avoid duplicates
+        const existingListener = (window as any).__linkClickInterceptor;
+        if (existingListener) {
+          // @ts-ignore - Browser context
+          document.removeEventListener('click', existingListener, true);
+        }
+
+        // @ts-ignore - Browser context
+        // Create interceptor function
+        const interceptor = (e: MouseEvent) => {
+          // @ts-ignore - Browser context
+          const target = e.target as HTMLElement;
+          // @ts-ignore - Browser context
+          const link = target.closest('a');
+
+          if (link && link.href) {
+            // Check if it's an external link or has target="_blank"
+            const isExternal = link.target === '_blank' ||
+                             link.rel.includes('noopener') ||
+                             link.rel.includes('noreferrer');
+
+            // Always prevent default and navigate in same page
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+
+            console.log('[Playwright Interceptor] Link clicked:', link.href);
+
+            // @ts-ignore - Browser context
+            // Navigate in same page
+            window.location.href = link.href;
+          }
+        };
+
+        // @ts-ignore - Browser context
+        // Store reference to remove later if needed
+        (window as any).__linkClickInterceptor = interceptor;
+
+        // @ts-ignore - Browser context
+        // Add listener in capture phase to intercept before other handlers
+        document.addEventListener('click', interceptor, true);
+
+        console.log('[Playwright Interceptor] Link click interceptor installed');
+      });
+
+    } catch (error) {
+      console.error('[Playwright] Error setting up link click interceptor:', error);
+    }
+  }
+
+  /**
    * Input code into search field
    */
   private async inputCode(code: string): Promise<boolean> {
@@ -175,32 +241,53 @@ export class PlaywrightAutomation {
     if (!this.page) return false;
 
     try {
-      // Find and click search button
+      // Find search button/link and extract href or prepare for click
       // @ts-ignore - Code runs in browser context with DOM
-      const clicked = await this.page.evaluate(() => {
-        // @ts-ignore
-        const buttons = document.querySelectorAll('button, input[type="submit"], .btn');
-        for (let i = 0; i < buttons.length; i++) {
-          const btn = buttons[i] as any;
-          const text = btn.textContent || btn.value || '';
+      const result = await this.page.evaluate(() => {
+        // @ts-ignore - Include links in addition to buttons
+        const elements = document.querySelectorAll('button, input[type="submit"], .btn, a');
+        for (let i = 0; i < elements.length; i++) {
+          const el = elements[i] as any;
+          const text = el.textContent || el.value || '';
           if (text.toLowerCase().includes('cerca') ||
               text.toLowerCase().includes('search') ||
               text.toLowerCase().includes('invia') ||
               text.toLowerCase().includes('submit')) {
-            btn.click();
-            return true;
+
+            // If it's a link, return the href for programmatic navigation
+            if (el.tagName.toLowerCase() === 'a' && el.href) {
+              return { type: 'link', href: el.href };
+            }
+
+            // If it's a button/submit, click it directly (form submission)
+            el.click();
+            return { type: 'button', clicked: true };
           }
         }
-        return false;
+        return null;
       });
 
-      if (clicked) {
-        console.log('[Playwright] Search button clicked');
-        return true;
-      } else {
-        console.error('[Playwright] Search button not found');
+      if (!result) {
+        console.error('[Playwright] Search button/link not found');
         return false;
       }
+
+      // Handle link navigation programmatically to avoid new windows
+      if (result.type === 'link' && result.href) {
+        console.log('[Playwright] Navigating to search link:', result.href);
+        await this.page.goto(result.href, { waitUntil: 'networkidle' });
+        // Reinstall interceptor after navigation
+        await this.setupLinkClickInterceptor();
+        return true;
+      }
+
+      // Button was clicked in evaluate()
+      if (result.type === 'button' && result.clicked) {
+        console.log('[Playwright] Search button clicked');
+        return true;
+      }
+
+      return false;
 
     } catch (error) {
       console.error('[Playwright] Error in clickSearchButton:', error);
@@ -272,15 +359,20 @@ export class PlaywrightAutomation {
    */
   parseCellsToResult(code: string, cells: string[]): ProcessingResult {
     // Map cells to result structure
-    // Based on original Python logic and DEFAULT_IDX_* constants
+    // Based on Python worker.py logic - CORRECT indices!
     return {
       'Input Code': code,
-      'Stato': cells[2] || '',                         // DEFAULT_IDX_STATO = 3 (0-indexed = 2)
-      'Protocollo uscita': cells[3] || '',            // DEFAULT_IDX_PROTOCOLLO = 4 (0-indexed = 3)
-      'Provvedimento': cells[4] || '',                 // DEFAULT_IDX_PROVVEDIMENTO = 5 (0-indexed = 4)
-      'Data Provvedimento': cells[5] || '',            // DEFAULT_IDX_DATA_PROVV = 6 (0-indexed = 5)
-      'Codice richiesta (risultato)': cells[6] || '', // DEFAULT_IDX_CODICE_RIS = 7 (0-indexed = 6)
-      'Note Usmaf': cells[7] || ''                     // DEFAULT_IDX_NOTE = 8 (0-indexed = 7)
+      'Taric': cells[0] || '',                         // Index 0 - Codice TARIC
+      'Stato': cells[2] || '',                         // Index 2 - Stato
+      'Protocollo ingresso': cells[3] || '',          // Index 3 - Protocollo ingresso
+      'Inserita il': cells[4] || '',                   // Index 4 - Inserita il
+      'Protocollo uscita': cells[5] || '',            // Index 5 - Protocollo uscita (FIXED!)
+      'Provvedimento': cells[6] || '',                 // Index 6 - Provvedimento (FIXED!)
+      'Data Provvedimento': cells[7] || '',            // Index 7 - Data provvedimento (FIXED!)
+      'Codice richiesta (risultato)': cells[8] || code, // Index 8 - Codice richiesta (FIXED! Fallback to input code)
+      'Tipo pratica': cells[9] || '',                  // Index 9 - Tipo pratica
+      'Note Usmaf': cells[10] || '',                   // Index 10 - Note Usmaf (FIXED!)
+      'Invio SUD': cells[11] || ''                     // Index 11 - Invio SUD
     };
   }
 
@@ -293,6 +385,8 @@ export class PlaywrightAutomation {
     try {
       console.log('[Playwright] Reloading page...');
       await this.page.reload({ waitUntil: 'networkidle' });
+      // Reinstall interceptor after reload
+      await this.setupLinkClickInterceptor();
     } catch (error) {
       console.error('[Playwright] Error reloading page:', error);
     }

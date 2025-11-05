@@ -24,9 +24,11 @@ export class BrowserViewManager {
     try {
       console.log('[BrowserView] Creating BrowserView...');
 
-      // Create BrowserView
+      // Create BrowserView with SAME partition as renderer's <webview>
+      // This allows sharing cookies/session/authentication
       this.browserView = new BrowserView({
         webPreferences: {
+          partition: 'persist:nsis', // CRITICAL: Share session with <webview> tag
           nodeIntegration: false,
           contextIsolation: true,
           sandbox: true
@@ -36,17 +38,25 @@ export class BrowserViewManager {
       // Add to main window
       mainWindow.addBrowserView(this.browserView);
 
-      // Set initial bounds (will be updated by renderer)
-      this.updateBounds();
+      // Set BrowserView to be hidden off-screen but with realistic dimensions
+      // Use 1280x720 viewport (same as Playwright) for proper rendering
+      // Position far off-screen where it won't be visible
+      this.browserView.setBounds({
+        x: -10000,
+        y: -10000,
+        width: 1280,
+        height: 720
+      });
+      console.log('[BrowserView] Positioned off-screen (1280x720) for automation use only');
 
       // Setup navigation event handlers
       this.setupEventHandlers();
 
-      // Load initial URL
-      this.browserView.webContents.loadURL(URL_NSIS);
+      // DO NOT load URL here - let webview-automation handle loading
+      // This avoids race conditions with event listeners
 
       this.isInitialized = true;
-      console.log('[BrowserView] Initialization complete');
+      console.log('[BrowserView] Initialization complete (ready for automation)');
 
     } catch (error) {
       console.error('[BrowserView] Initialization error:', error);
@@ -61,6 +71,14 @@ export class BrowserViewManager {
     if (!this.browserView || !this.mainWindow) return;
 
     const webContents = this.browserView.webContents;
+
+    // Prevent new windows/tabs from opening - force navigation in same view
+    webContents.setWindowOpenHandler(({ url }) => {
+      console.log('[BrowserView] Intercepted new-window attempt:', url);
+      // Instead of opening a new window, navigate in the same BrowserView
+      webContents.loadURL(url);
+      return { action: 'deny' }; // Block the new window
+    });
 
     // URL change event
     webContents.on('did-navigate', (_event, url) => {
@@ -81,6 +99,9 @@ export class BrowserViewManager {
     webContents.on('did-stop-loading', () => {
       this.sendLoadingState(false);
       this.sendNavigationState();
+
+      // Inject link click interceptor after page loads
+      this.injectLinkClickInterceptor();
     });
 
     // Error handling
@@ -91,36 +112,95 @@ export class BrowserViewManager {
   }
 
   /**
-   * Update BrowserView bounds based on renderer-provided coordinates
+   * Inject JavaScript to intercept all link clicks and prevent new windows
    */
-  updateBoundsFromRenderer(bounds: { x: number; y: number; width: number; height: number }): void {
-    if (!this.browserView || !this.mainWindow) return;
+  private injectLinkClickInterceptor(): void {
+    if (!this.browserView) return;
 
-    console.log('[BrowserView] Setting bounds from renderer:', bounds);
+    const webContents = this.browserView.webContents;
 
-    this.browserView.setBounds({
-      x: Math.round(bounds.x),
-      y: Math.round(bounds.y),
-      width: Math.round(bounds.width),
-      height: Math.round(bounds.height)
+    // Inject JavaScript to intercept link clicks AND override window.open()
+    webContents.executeJavaScript(`
+      (function() {
+        // CRITICAL: Override window.open() globally (like old PyQt6 system)
+        // This catches ALL JavaScript-initiated window opens
+        window.open = function(url, name, features) {
+          console.log('[BrowserView Interceptor] Blocked window.open():', url);
+          if (url) {
+            window.location.href = url;
+          }
+          return null;
+        };
+
+        // Remove existing interceptors if present
+        if (window.__browserview_link_interceptor) {
+          document.removeEventListener('click', window.__browserview_link_interceptor, true);
+          document.removeEventListener('mousedown', window.__browserview_link_interceptor, true);
+          document.removeEventListener('auxclick', window.__browserview_link_interceptor, true);
+        }
+
+        // Create new interceptor that handles ALL clicks on links
+        const interceptor = function(e) {
+          const link = e.target.closest('a');
+
+          if (link && link.href) {
+            // Check if any modifier key is pressed or if it's a non-left click
+            const hasModifier = e.ctrlKey || e.shiftKey || e.metaKey || e.altKey;
+            const isMiddleClick = e.button === 1;
+            const opensNewWindow = link.target === '_blank' ||
+                                  link.target === '_new' ||
+                                  link.rel.includes('noopener') ||
+                                  link.rel.includes('noreferrer');
+
+            // Intercept if any condition that would open new window is true
+            if (opensNewWindow || hasModifier || isMiddleClick) {
+              console.log('[BrowserView Interceptor] Blocked link click (Ctrl/Shift/Middle/target="_blank"):', link.href);
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
+
+              // Navigate in same page instead of opening new window
+              window.location.href = link.href;
+              return false;
+            }
+          }
+        };
+
+        // Store reference
+        window.__browserview_link_interceptor = interceptor;
+
+        // Add listeners for all types of clicks in capture phase
+        document.addEventListener('click', interceptor, true);
+        document.addEventListener('mousedown', interceptor, true);
+        document.addEventListener('auxclick', interceptor, true); // Middle click
+
+        console.log('[BrowserView Interceptor] window.open() override + click interceptor installed');
+      })();
+    `).catch(error => {
+      console.error('[BrowserView] Error injecting link interceptor:', error);
     });
   }
 
   /**
+   * Update BrowserView bounds based on renderer-provided coordinates
+   * DISABLED: BrowserView is kept off-screen for automation only
+   */
+  updateBoundsFromRenderer(bounds: { x: number; y: number; width: number; height: number }): void {
+    // BrowserView is intentionally kept off-screen for automation
+    // Do not reposition it based on renderer coordinates
+    console.log('[BrowserView] Ignoring bounds update - BrowserView is for automation only');
+    return;
+  }
+
+  /**
    * Update BrowserView bounds based on window size (fallback)
+   * DISABLED: BrowserView is kept off-screen for automation only
    */
   updateBounds(): void {
-    if (!this.browserView || !this.mainWindow) return;
-
-    console.log('[BrowserView] Using fallback bounds calculation');
-    // Fallback positioning - will be overridden by renderer
-    const windowBounds = this.mainWindow.getBounds();
-    const x = 20;
-    const y = 420;
-    const width = Math.max(windowBounds.width - 40, 400);
-    const height = 500;
-
-    this.browserView.setBounds({ x, y, width, height });
+    // BrowserView is intentionally kept off-screen for automation
+    // Do not reposition it
+    console.log('[BrowserView] Ignoring bounds update - BrowserView is for automation only');
+    return;
   }
 
   /**
@@ -200,6 +280,13 @@ export class BrowserViewManager {
       return this.browserView.webContents.getURL();
     }
     return '';
+  }
+
+  /**
+   * Get BrowserView instance (for automation)
+   */
+  getBrowserView(): BrowserView | null {
+    return this.browserView;
   }
 
   /**

@@ -1,16 +1,31 @@
+/* Controls Section - Merged with File Section */
+
 .controls-section {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--color-dhl-yellow);
+}
+
+/* Button Container - Vertical Layout */
 .controls-buttons {
   display: flex;
+  flex-direction: column;
   gap: 6px;
 }
 
+/* Base Button Styling - Unified 32px height */
 .btn-control {
-  flex: 1;
+  width: 100%;
+  height: 32px;
   padding: 6px 12px;
   border: none;
   border-radius: var(--radius-md);
@@ -21,10 +36,35 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  height: 32px;
+  gap: 8px;
 }
 
+/* File Selection Button - Yellow Gradient */
+.btn-select-file {
+  background: linear-gradient(135deg, var(--color-dhl-yellow) 0%, var(--color-dhl-yellow-dark) 100%);
+  color: var(--color-white);
+  justify-content: flex-start;
+}
+
+.btn-select-file:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 184, 0, 0.3);
+}
+
+.btn-select-file:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button-text {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Start Button - Green Gradient */
 .btn-start {
   background: linear-gradient(135deg, var(--color-success) 0%, #20c997 100%);
   color: var(--color-white);
@@ -40,6 +80,7 @@
   cursor: not-allowed;
 }
 
+/* Stop Button - Red Gradient */
 .btn-stop {
   background: linear-gradient(135deg, var(--color-danger) 0%, #c82333 100%);
   color: var(--color-white);
@@ -50,6 +91,36 @@
   box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
 
+/* File Info Display */
+.file-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 10px;
+  background-color: var(--color-bg-tertiary);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--color-dhl-yellow);
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.info-label {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.info-value {
+  font-size: 12px;
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+/* Status Indicator */
 .controls-status {
   padding: 6px 10px;
   background-color: var(--color-bg-tertiary);
@@ -96,4 +167,27 @@
   font-size: 12px;
   font-weight: 500;
   color: var(--color-text-primary);
+}
+
+/* Spinning animation for loading icon */
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }

@@ -21,11 +21,13 @@
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
-.webview-section .section-title .icon {
-  font-size: 20px;
+/* Modern Globe icon styling */
+.webview-section .section-title .title-icon {
+  color: var(--color-dhl-yellow);
+  flex-shrink: 0;
 }
 
 /* Header with navigation controls */
@@ -45,37 +47,66 @@
   flex-shrink: 0;
 }
 
-/* Navigation buttons */
+/* Navigation buttons - Windows 11 Modern Style */
 .nav-button {
   width: 32px;
   height: 32px;
   flex-shrink: 0;
   border: none;
   border-radius: var(--radius-md);
-  background: var(--color-bg-tertiary);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--color-text-primary);
-  font-size: 16px;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
 }
 
+/* Glow effect on hover - coerente con StatisticsSection */
 .nav-button:hover:not(:disabled) {
   background: var(--color-dhl-yellow);
   color: var(--color-white);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  box-shadow:
+    0 4px 12px rgba(255, 184, 0, 0.3),
+    0 0 20px rgba(255, 184, 0, 0.2);
+  border-color: rgba(255, 184, 0, 0.5);
 }
 
+/* Reload button - rotation animation on hover */
+.nav-button-reload:hover:not(:disabled) svg {
+  animation: rotate-reload 0.6s ease-in-out;
+}
+
+@keyframes rotate-reload {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Active state - tactile feedback */
 .nav-button:active:not(:disabled) {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.95);
 }
 
+/* Disabled state - modern grayscale effect */
 .nav-button:disabled {
-  opacity: 0.3;
+  opacity: 0.4;
   cursor: not-allowed;
+  filter: grayscale(0.8);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 /* URL bar */

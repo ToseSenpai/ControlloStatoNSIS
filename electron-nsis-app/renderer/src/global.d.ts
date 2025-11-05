@@ -23,12 +23,16 @@ interface ElectronAPI {
   onBadgeUpdate: (callback: (badges: any) => void) => () => void;
   onLogMessage: (callback: (message: string) => void) => () => void;
   onProcessingComplete: (callback: () => void) => () => void;
+  onShowCompletionDialog: (callback: (message: string) => void) => () => void;
 
   // WebView controls
   webViewGoBack: () => void;
   webViewGoForward: () => void;
   webViewReload: () => void;
   webViewGoHome: () => void;
+
+  // Register webview for automation
+  registerWebView: (webContentsId: number) => void;
 
   // WebView event listeners
   onWebViewUrlChange: (callback: (url: string) => void) => () => void;

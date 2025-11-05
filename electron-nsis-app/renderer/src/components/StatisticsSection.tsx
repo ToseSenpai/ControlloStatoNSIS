@@ -1,7 +1,40 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import './StatisticsSection.css';
+
+// Animated counter component
+const AnimatedCounter: React.FC<{ value: number }> = ({ value }) => {
+  const [displayValue, setDisplayValue] = React.useState(0);
+  const prevValueRef = useRef(0);
+
+  useEffect(() => {
+    const prevValue = prevValueRef.current;
+    prevValueRef.current = value;
+
+    if (value === prevValue) return;
+
+    const duration = 500; // 500ms animation
+    const steps = 20;
+    const stepDuration = duration / steps;
+    const increment = (value - prevValue) / steps;
+
+    let currentStep = 0;
+    const interval = setInterval(() => {
+      currentStep++;
+      if (currentStep >= steps) {
+        setDisplayValue(value);
+        clearInterval(interval);
+      } else {
+        setDisplayValue(Math.round(prevValue + increment * currentStep));
+      }
+    }, stepDuration);
+
+    return () => clearInterval(interval);
+  }, [value]);
+
+  return <span className="badge-value">{displayValue}</span>;
+};
 
 const StatisticsSection: React.FC = () => {
   const { badges } = useSelector((state: RootState) => state.ui);
@@ -17,13 +50,14 @@ const StatisticsSection: React.FC = () => {
 
   return (
     <div className="statistics-section">
-      <h3 className="section-title">Statistiche</h3>
+      <h3 className="section-title">Status</h3>
 
       <div className="badges-grid">
         {badgeData.map((badge) => (
           <div key={badge.label} className={`badge-card badge-${badge.color}`}>
             <span className="badge-label">{badge.label}</span>
-            <span className="badge-value">{badge.value}</span>
+            <AnimatedCounter value={badge.value} />
+            <div className="badge-glow"></div>
           </div>
         ))}
       </div>

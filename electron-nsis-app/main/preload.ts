@@ -59,11 +59,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => ipcRenderer.removeListener('processing-complete', subscription);
   },
 
+  onShowCompletionDialog: (callback: (message: string) => void) => {
+    const subscription = (_event: IpcRendererEvent, message: string) => callback(message);
+    ipcRenderer.on('show-completion-dialog', subscription);
+    return () => ipcRenderer.removeListener('show-completion-dialog', subscription);
+  },
+
   // WebView controls
   webViewGoBack: () => ipcRenderer.send('webview-go-back'),
   webViewGoForward: () => ipcRenderer.send('webview-go-forward'),
   webViewReload: () => ipcRenderer.send('webview-reload'),
   webViewGoHome: () => ipcRenderer.send('webview-go-home'),
+
+  // Register webview webContents ID for automation
+  registerWebView: (webContentsId: number) => ipcRenderer.send('register-webview', webContentsId),
 
   // WebView event listeners
   onWebViewUrlChange: (callback: (url: string) => void) => {
@@ -114,6 +123,7 @@ export interface ElectronAPI {
   onBadgeUpdate: (callback: (badges: any) => void) => () => void;
   onLogMessage: (callback: (message: string) => void) => () => void;
   onProcessingComplete: (callback: () => void) => () => void;
+  registerWebView: (webContentsId: number) => void;
 }
 
 declare global {
