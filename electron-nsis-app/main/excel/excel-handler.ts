@@ -6,8 +6,9 @@ import ExcelJS from 'exceljs';
 import * as path from 'path';
 import * as fs from 'fs';
 import {
-  COL_RICERCA, COL_STATO, COL_PROTOCOLLO, COL_PROVVEDIMENTO,
-  COL_DATA_PROVV, COL_CODICE_RIS, COL_NOTE
+  COL_RICERCA, COL_TARIC, COL_STATO, COL_PROTOCOLLO_INGRESSO, COL_INSERITA_IL,
+  COL_PROTOCOLLO, COL_PROVVEDIMENTO, COL_DATA_PROVV, COL_CODICE_RIS,
+  COL_TIPO_PRATICA, COL_NOTE, COL_INVIO_SUD
 } from '../../shared/constants/config';
 import { LoadExcelResult, SaveExcelResult, ProcessingResult } from '../../shared/types/excel-types';
 
@@ -224,19 +225,25 @@ export class ExcelHandler {
     results: ProcessingResult[]
   ): Promise<boolean> {
     try {
-      // Column mapping
+      // Column mapping - ALL 11 columns!
       const colNameMap: Record<string, string> = {
+        'Taric': COL_TARIC,
         'Stato': COL_STATO,
+        'Protocollo ingresso': COL_PROTOCOLLO_INGRESSO,
+        'Inserita il': COL_INSERITA_IL,
         'Protocollo uscita': COL_PROTOCOLLO,
         'Provvedimento': COL_PROVVEDIMENTO,
         'Data Provvedimento': COL_DATA_PROVV,
         'Codice richiesta (risultato)': COL_CODICE_RIS,
-        'Note Usmaf': COL_NOTE
+        'Tipo pratica': COL_TIPO_PRATICA,
+        'Note Usmaf': COL_NOTE,
+        'Invio SUD': COL_INVIO_SUD
       };
 
       const outputConfigKeys = [
-        'Stato', 'Protocollo uscita', 'Provvedimento',
-        'Data Provvedimento', 'Codice richiesta (risultato)', 'Note Usmaf'
+        'Taric', 'Stato', 'Protocollo ingresso', 'Inserita il',
+        'Protocollo uscita', 'Provvedimento', 'Data Provvedimento',
+        'Codice richiesta (risultato)', 'Tipo pratica', 'Note Usmaf', 'Invio SUD'
       ];
 
       // Get existing headers

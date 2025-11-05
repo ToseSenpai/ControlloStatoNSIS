@@ -24,6 +24,8 @@ interface UISliceState {
   showLogs: boolean;
   webViewUrl: string;
   webViewLoading: boolean;
+  showCompletionDialog: boolean;
+  completionMessage: string;
 }
 
 const initialState: UISliceState = {
@@ -45,7 +47,9 @@ const initialState: UISliceState = {
   logs: [],
   showLogs: false,
   webViewUrl: '',
-  webViewLoading: false
+  webViewLoading: false,
+  showCompletionDialog: false,
+  completionMessage: ''
 };
 
 const uiSlice = createSlice({
@@ -98,6 +102,14 @@ const uiSlice = createSlice({
     },
     resetUI: (state) => {
       return initialState;
+    },
+    showCompletion: (state, action: PayloadAction<string>) => {
+      state.showCompletionDialog = true;
+      state.completionMessage = action.payload;
+    },
+    hideCompletion: (state) => {
+      state.showCompletionDialog = false;
+      state.completionMessage = '';
     }
   }
 });
@@ -114,7 +126,9 @@ export const {
   setShowLogs,
   setWebViewUrl,
   setWebViewLoading,
-  resetUI
+  resetUI,
+  showCompletion,
+  hideCompletion
 } = uiSlice.actions;
 
 export default uiSlice.reducer;

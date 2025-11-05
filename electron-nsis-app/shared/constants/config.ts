@@ -26,12 +26,17 @@ export const MAX_NULL_CHECKS = 3;
 
 // Excel Column Names (case-insensitive)
 export const COL_RICERCA = "ricerca";
+export const COL_TARIC = "taric";
 export const COL_STATO = "stato";
+export const COL_PROTOCOLLO_INGRESSO = "protocollo ingresso";
+export const COL_INSERITA_IL = "inserita il";
 export const COL_PROTOCOLLO = "protocollo uscita";
 export const COL_PROVVEDIMENTO = "provvedimento";
 export const COL_DATA_PROVV = "data provvedimento";
 export const COL_CODICE_RIS = "codice richiesta (risultato)";
+export const COL_TIPO_PRATICA = "tipo pratica";
 export const COL_NOTE = "note usmaf";
+export const COL_INVIO_SUD = "invio sud";
 
 // Default Column Indices (fallback)
 export const DEFAULT_IDX_STATO = 3;
