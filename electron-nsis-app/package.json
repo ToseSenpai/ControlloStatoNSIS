@@ -1,0 +1,86 @@
+{
+  "name": "controllo-stato-nsis-electron",
+  "version": "1.0.0",
+  "description": "Applicazione desktop per il controllo dello stato delle spedizioni NSIS con interfaccia Electron moderna",
+  "main": "dist/main/index.js",
+  "author": "ST",
+  "license": "MIT",
+  "scripts": {
+    "start": "powershell -ExecutionPolicy Bypass -File start.ps1",
+    "dev": "concurrently \"npm run dev:main\" \"npm run dev:renderer\"",
+    "dev:main": "tsc -p tsconfig.main.json --watch",
+    "dev:renderer": "webpack serve --config webpack.config.js --mode development",
+    "build": "npm run build:main && npm run build:renderer",
+    "build:main": "tsc -p tsconfig.main.json",
+    "build:renderer": "webpack --config webpack.config.js --mode production",
+    "package": "electron-builder build --win --publish never",
+    "package:dir": "electron-builder build --win --dir",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint . --ext .ts,.tsx"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.0.0",
+    "electron-store": "^8.1.0",
+    "exceljs": "^4.4.0",
+    "lucide-react": "^0.552.0",
+    "playwright": "^1.40.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-redux": "^9.0.0",
+    "xstate": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "concurrently": "^8.2.0",
+    "css-loader": "^6.8.0",
+    "electron": "^28.3.3",
+    "electron-builder": "^24.9.0",
+    "electron-devtools-installer": "^3.2.0",
+    "eslint": "^8.54.0",
+    "eslint-plugin-react": "^7.33.0",
+    "html-webpack-plugin": "^5.5.0",
+    "jest": "^29.7.0",
+    "style-loader": "^3.3.0",
+    "ts-loader": "^9.5.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.3.0",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.0",
+    "webpack-dev-server": "^4.15.0"
+  },
+  "build": {
+    "appId": "com.st.controllo-stato-nsis",
+    "productName": "ControlloStatoNSIS",
+    "directories": {
+      "output": "release",
+      "buildResources": "assets"
+    },
+    "files": [
+      "dist/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}

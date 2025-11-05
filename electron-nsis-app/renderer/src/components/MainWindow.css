@@ -1,0 +1,153 @@
+.main-window {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-bg-primary);
+  overflow: hidden;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+  background-color: var(--color-bg-primary);
+  display: flex;
+  flex-direction: column;
+}
+
+.content-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(160px, 220px) 1fr;
+  grid-template-rows: 1fr;
+  gap: 6px;
+  align-items: stretch;
+  transition: grid-template-columns 300ms ease;
+  padding: 6px;
+}
+
+.content-grid.sidebar-collapsed {
+  grid-template-columns: 40px 1fr;
+}
+
+/* Sidebar */
+.sidebar {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: visible;
+  transition: all 300ms ease;
+  min-height: 0;
+}
+
+.sidebar-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 48px 12px 12px 12px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  min-height: 0;
+}
+
+.sidebar.collapsed .sidebar-content {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.section-panel {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 300ms ease;
+}
+
+.section-panel.compact {
+  padding: 2px;
+  align-items: center;
+  justify-content: center;
+}
+
+.section-panel-full {
+  grid-column: 2;
+  grid-row: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.section-panel h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+  padding-bottom: var(--spacing-xs);
+  border-bottom: 2px solid var(--color-dhl-yellow);
+}
+
+.section-panel p {
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* Status Bar */
+.status-bar {
+  height: 28px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--spacing-md);
+  background-color: var(--color-bg-tertiary);
+  border-top: 1px solid var(--color-bg-elevated);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.status-text {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+/* Responsive */
+/* Medium screens - narrower sidebar */
+@media (max-width: 900px) {
+  .content-grid {
+    grid-template-columns: 160px 1fr;
+  }
+}
+
+/* Small screens - overlay sidebar */
+@media (max-width: 700px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 240px;
+    z-index: var(--z-dropdown);
+    background: var(--color-bg-secondary);
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
+    transform: translateX(-100%);
+    transition: transform 300ms ease;
+  }
+
+  .sidebar:not(.collapsed) {
+    transform: translateX(0);
+  }
+
+  .content-grid.sidebar-collapsed .sidebar {
+    transform: translateX(-100%);
+  }
+}

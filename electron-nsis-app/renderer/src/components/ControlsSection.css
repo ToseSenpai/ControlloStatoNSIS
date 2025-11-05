@@ -1,0 +1,99 @@
+.controls-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.controls-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-control {
+  flex: 1;
+  padding: 6px 12px;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+}
+
+.btn-start {
+  background: linear-gradient(135deg, var(--color-success) 0%, #20c997 100%);
+  color: var(--color-white);
+}
+
+.btn-start:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-start:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-stop {
+  background: linear-gradient(135deg, var(--color-danger) 0%, #c82333 100%);
+  color: var(--color-white);
+}
+
+.btn-stop:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.controls-status {
+  padding: 6px 10px;
+  background-color: var(--color-bg-tertiary);
+  border-radius: var(--radius-md);
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.status-idle .status-dot {
+  background-color: var(--color-gray-400);
+  animation: none;
+}
+
+.status-loading .status-dot {
+  background-color: var(--color-warning);
+}
+
+.status-processing .status-dot {
+  background-color: var(--color-info);
+}
+
+.status-completed .status-dot {
+  background-color: var(--color-success);
+  animation: none;
+}
+
+.status-error .status-dot {
+  background-color: var(--color-danger);
+  animation: none;
+}
+
+.status-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
