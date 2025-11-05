@@ -1,0 +1,43 @@
+.window-controls {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  -webkit-app-region: no-drag;
+}
+
+.window-control-btn {
+  width: 36px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border: none;
+  color: var(--color-gray-600);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 0;
+}
+
+.window-control-btn:hover {
+  background-color: var(--color-gray-100);
+}
+
+.window-control-btn:active {
+  background-color: var(--color-gray-200);
+}
+
+.close-btn:hover {
+  background-color: var(--color-danger);
+  color: var(--color-white);
+}
+
+.close-btn:active {
+  background-color: #c82333;
+}
+
+.window-control-btn svg {
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+}

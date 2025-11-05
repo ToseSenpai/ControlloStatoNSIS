@@ -75,3 +75,10 @@ release/
 portable/
 installer/
 *.iss
+
+# Claude Code configuration
+.claude/
+
+# Test files
+test-iframe.html
+nul

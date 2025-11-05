@@ -1,0 +1,50 @@
+.statistics-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(85px, 1fr));
+  gap: 6px;
+}
+
+.badge-card {
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-bg-elevated);
+  border-left: 3px solid;
+  transition: all var(--transition-base);
+}
+
+.badge-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.badge-red { border-left-color: var(--color-danger); }
+.badge-blue { border-left-color: var(--color-info); }
+.badge-green { border-left-color: var(--color-success); }
+.badge-orange { border-left-color: var(--color-warning); }
+.badge-purple { border-left-color: #9b59b6; }
+.badge-darkred { border-left-color: #8b0000; }
+
+.badge-label {
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.badge-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
