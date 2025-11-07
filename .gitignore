@@ -82,3 +82,14 @@ installer/
 # Test files
 test-iframe.html
 nul
+
+# Node.js
+node_modules/
+npm-debug.log*
+
+# Legacy/archive directories
+icons_legacy/
+
+# Electron app (additional safety)
+electron-nsis-app/dist/
+electron-nsis-app/release/

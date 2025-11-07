@@ -1,6 +1,6 @@
 {
   "name": "controllo-stato-nsis-electron",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "Applicazione desktop per il controllo dello stato delle spedizioni NSIS con interfaccia Electron moderna",
   "main": "dist/main/index.js",
   "author": "ST",
@@ -15,6 +15,7 @@
     "build:renderer": "webpack --config webpack.config.js --mode production",
     "package": "electron-builder build --win --publish never",
     "package:dir": "electron-builder build --win --dir",
+    "package:publish": "electron-builder build --win --publish always",
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "eslint . --ext .ts,.tsx"
@@ -22,9 +23,9 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.0.0",
     "electron-store": "^8.1.0",
+    "electron-updater": "^6.6.2",
     "exceljs": "^4.4.0",
     "lucide-react": "^0.552.0",
-    "playwright": "^1.40.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-redux": "^9.0.0",
@@ -76,7 +77,9 @@
           ]
         }
       ],
-      "icon": "assets/icon.ico"
+      "icon": "assets/icon.ico",
+      "artifactName": "${productName}-${version}-Setup.${ext}",
+      "requestedExecutionLevel": "asInvoker"
     },
     "mac": {
       "category": "public.app-category.utilities",
@@ -97,9 +100,17 @@
     },
     "nsis": {
       "oneClick": false,
+      "perMachine": false,
+      "allowElevation": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "ToseSenpai",
+      "repo": "ControlloStatoNSIS",
+      "private": false
     }
   }
 }

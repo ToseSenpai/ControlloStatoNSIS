@@ -26,14 +26,31 @@ export class BrowserViewManager {
 
       // Create BrowserView with SAME partition as renderer's <webview>
       // This allows sharing cookies/session/authentication
-      this.browserView = new BrowserView({
-        webPreferences: {
-          partition: 'persist:nsis', // CRITICAL: Share session with <webview> tag
-          nodeIntegration: false,
-          contextIsolation: true,
-          sandbox: true
-        }
-      });
+      // Try persist partition first, fallback to memory if permission denied
+      let partitionType = 'persist:nsis';
+      try {
+        this.browserView = new BrowserView({
+          webPreferences: {
+            partition: 'persist:nsis', // CRITICAL: Share session with <webview> tag
+            nodeIntegration: false,
+            contextIsolation: true,
+            sandbox: true
+          }
+        });
+        console.log('[BrowserView] Using persistent partition');
+      } catch (partitionError: any) {
+        console.warn('[BrowserView] Persistent partition failed, using memory partition:', partitionError.message);
+        partitionType = 'memory:nsis';
+        this.browserView = new BrowserView({
+          webPreferences: {
+            partition: 'memory:nsis', // Fallback: In-memory session (not persistent)
+            nodeIntegration: false,
+            contextIsolation: true,
+            sandbox: true
+          }
+        });
+        console.log('[BrowserView] Using memory partition (session will not persist)');
+      }
 
       // Add to main window
       mainWindow.addBrowserView(this.browserView);

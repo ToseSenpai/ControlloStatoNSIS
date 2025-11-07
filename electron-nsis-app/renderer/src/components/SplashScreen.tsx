@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './SplashScreen.css';
+import logoST from '../assets/logost.png';
 
 const loadingSteps = [
   'Inizializzazione applicazione...',
@@ -14,6 +15,12 @@ const loadingSteps = [
 const SplashScreen: React.FC = () => {
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
+  const [version, setVersion] = useState<string>('');
+
+  // Get app version
+  useEffect(() => {
+    window.electronAPI.getAppVersion().then(v => setVersion(v));
+  }, []);
 
   useEffect(() => {
     const duration = 5000; // 5 seconds
@@ -61,9 +68,12 @@ const SplashScreen: React.FC = () => {
         <p className="loading-step">{loadingSteps[currentStep]}</p>
 
         <div className="splash-footer">
-          <p className="footer-text">Sviluppato da ST</p>
+          <img src={logoST} alt="ST" className="st-logo" />
         </div>
       </div>
+
+      {/* Version Badge */}
+      {version && <div className="version-badge">v{version}</div>}
     </div>
   );
 };

@@ -1,4 +1,5 @@
-import { ipcMain, dialog } from 'electron';
+import { ipcMain, dialog, app } from 'electron';
+import { autoUpdater } from 'electron-updater';
 import { excelHandler } from './excel/excel-handler';
 import { ExcelData } from '../shared/types/excel-types';
 
@@ -135,6 +136,29 @@ ipcMain.on('webview-go-home', () => {
 ipcMain.on('update-webview-bounds', (_event, bounds: { x: number; y: number; width: number; height: number }) => {
   console.log('[IPC] Update WebView bounds:', bounds);
   browserViewManager.updateBoundsFromRenderer(bounds);
+});
+
+// ===== AUTO-UPDATE HANDLERS =====
+
+// Get current app version
+ipcMain.handle('get-app-version', () => {
+  return app.getVersion();
+});
+
+// Manual download trigger (optional, since autoDownload is true)
+ipcMain.on('download-update', () => {
+  console.log('📥 Manual download triggered');
+  try {
+    autoUpdater.downloadUpdate();
+  } catch (err) {
+    console.error('❌ Download error:', err);
+  }
+});
+
+// Install update and restart app
+ipcMain.on('install-update', () => {
+  console.log('🔄 Installing update and restarting...');
+  autoUpdater.quitAndInstall();
 });
 
 export {};

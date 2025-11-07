@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
 import { showCompletion, setProcessing, updateBadges } from '../store/slices/ui-slice';
 import { setState } from '../store/slices/app-slice';
+import { setUpdateAvailable, setDownloadProgress, setUpdateDownloaded, setUpdateError } from '../store/slices/update-slice';
 import ControlsSection from './ControlsSection';
 import StatisticsSection from './StatisticsSection';
 import WebViewSection from './WebViewSection';
@@ -10,6 +11,7 @@ import LogArea from './LogArea';
 import ProgressOverlay from './ProgressOverlay';
 import CompletionDialog from './CompletionDialog';
 import SidebarToggle from './SidebarToggle';
+import UpdateModal from './UpdateModal';
 import './MainWindow.css';
 
 const MainWindow: React.FC = () => {
@@ -17,6 +19,12 @@ const MainWindow: React.FC = () => {
   const { state } = useSelector((state: RootState) => state.app);
   const { progress } = useSelector((state: RootState) => state.ui);
   const { collapsed } = useSelector((state: RootState) => state.sidebar);
+  const [appVersion, setAppVersion] = useState<string>('');
+
+  // Get app version
+  useEffect(() => {
+    window.electronAPI.getAppVersion().then(v => setAppVersion(v));
+  }, []);
 
   // Listen for completion dialog event from main process
   useEffect(() => {
@@ -55,23 +63,39 @@ const MainWindow: React.FC = () => {
     };
   }, [dispatch]);
 
-  const getStatusText = () => {
-    if (progress.isProcessing) {
-      return `Elaborazione in corso: ${progress.current}/${progress.total} (${progress.percentage}%)`;
-    }
-    switch (state) {
-      case 'IDLE':
-        return 'Pronto';
-      case 'PROCESSING':
-        return 'Elaborazione...';
-      case 'COMPLETED':
-        return 'Elaborazione completata';
-      case 'ERROR':
-        return 'Errore durante elaborazione';
-      default:
-        return 'Pronto';
-    }
-  };
+  // ===== AUTO-UPDATE EVENT LISTENERS =====
+  useEffect(() => {
+    // Update available
+    const unsubscribeAvailable = window.electronAPI.onUpdateAvailable((info: any) => {
+      console.log('[MainWindow] Update available:', info);
+      dispatch(setUpdateAvailable(info));
+    });
+
+    // Download progress
+    const unsubscribeProgress = window.electronAPI.onUpdateDownloadProgress((progress: any) => {
+      console.log('[MainWindow] Download progress:', progress.percent + '%');
+      dispatch(setDownloadProgress(progress));
+    });
+
+    // Update downloaded
+    const unsubscribeDownloaded = window.electronAPI.onUpdateDownloaded((info: any) => {
+      console.log('[MainWindow] Update downloaded:', info);
+      dispatch(setUpdateDownloaded(info));
+    });
+
+    // Update error
+    const unsubscribeError = window.electronAPI.onUpdateError((error: string) => {
+      console.error('[MainWindow] Update error:', error);
+      dispatch(setUpdateError(error));
+    });
+
+    return () => {
+      unsubscribeAvailable();
+      unsubscribeProgress();
+      unsubscribeDownloaded();
+      unsubscribeError();
+    };
+  }, [dispatch]);
 
   return (
     <div className="main-window">
@@ -106,16 +130,17 @@ const MainWindow: React.FC = () => {
         </div>
       </div>
 
-      {/* Status Bar */}
-      <div className="status-bar">
-        <span className="status-text">{getStatusText()}</span>
-      </div>
-
       {/* Progress Overlay */}
       <ProgressOverlay />
 
       {/* Completion Dialog */}
       <CompletionDialog />
+
+      {/* Update Modal */}
+      <UpdateModal />
+
+      {/* App Version */}
+      {appVersion && <div className="app-version">v{appVersion}</div>}
     </div>
   );
 };

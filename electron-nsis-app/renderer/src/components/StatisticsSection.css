@@ -1,230 +1,148 @@
-/* Statistics Section - Windows 11 Fluent Design (Compact) */
+/* Statistics Section - Elegant Strips Design */
 
 .statistics-section {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: var(--spacing-4);
   width: 100%;
 }
 
 .section-title {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  line-height: var(--leading-tight);
   color: var(--color-text-primary);
-  margin: 0;
-  padding: 0 var(--spacing-xs);
-  letter-spacing: 0.3px;
+  margin: 0 0 var(--spacing-2) 0;
+  padding: 0 var(--spacing-2);
+  letter-spacing: var(--tracking-normal);
 }
 
-/* Badge Grid Layout - Single Column Vertical */
-.badges-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 6px;
+/* Status List Container */
+.status-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
   width: 100%;
 }
 
-/* Badge Card - Glassmorphic Windows 11 Design (Compact Vertical) */
-.badge-card {
+/* Status Strip - Horizontal Bar Design */
+.status-strip {
   position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 2px;
-  padding: 6px 10px;
+  justify-content: space-between;
+  height: var(--height-status-strip);
+  padding: 0 var(--spacing-6) 0 var(--spacing-8);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.01) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(8px);
+  transition: all var(--transition-fast);
+  overflow: hidden;
+  cursor: default;
+}
+
+/* Left border color indicator (4px thick) */
+.status-strip::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  transition: width var(--transition-fast);
+}
+
+/* DHL Color Variants - Alternating Yellow/Red */
+.status-yellow::before {
+  background: linear-gradient(180deg, var(--color-dhl-yellow) 0%, var(--color-dhl-yellow-dark) 100%);
+}
+
+.status-red::before {
+  background: linear-gradient(180deg, var(--color-dhl-red) 0%, #D32F2F 100%);
+}
+
+/* Hover Effects */
+.status-strip:hover {
   background: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.05) 0%,
     rgba(255, 255, 255, 0.02) 100%
   );
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--border-radius-md);
-  backdrop-filter: blur(10px);
-  transition: all var(--transition-base);
-  overflow: hidden;
-  cursor: default;
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  min-height: 45px;
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: translateX(2px);
 }
 
-/* Animated gradient border effect - Top */
-.badge-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--badge-color-start), var(--badge-color-end));
-  opacity: 0.8;
-  transition: opacity var(--transition-base);
+.status-strip:hover::before {
+  width: 6px;
 }
 
-/* Glow effect layer */
-.badge-glow {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(
-    circle at 50% 0%,
-    var(--badge-color-start),
-    transparent 70%
-  );
-  opacity: 0;
-  transition: opacity var(--transition-base);
-  pointer-events: none;
-}
-
-/* Hover effects */
-.badge-card:hover {
-  transform: translateY(-2px) scale(1.02);
-  border-color: rgba(255, 255, 255, 0.15);
-  box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.25),
-    0 0 20px var(--badge-color-glow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.badge-card:hover::before {
-  opacity: 1;
-  box-shadow: 0 0 15px var(--badge-color-glow);
-}
-
-.badge-card:hover .badge-glow {
-  opacity: 0.08;
-}
-
-.badge-card:hover .badge-value {
-  transform: scale(1.05);
-}
-
-/* Badge Label */
-.badge-label {
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  text-align: center;
-  line-height: 1.2;
-  white-space: nowrap;
-  max-width: 100%;
-}
-
-/* Badge Value */
-.badge-value {
-  font-size: 16px;
-  font-weight: 700;
+/* Status Label */
+.status-label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
   color: var(--color-text-primary);
-  line-height: 1;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-normal);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Badge Value - Simple Number (no circular container) */
+.badge-value {
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  line-height: var(--leading-none);
   font-variant-numeric: tabular-nums;
-  transition: all var(--transition-fast);
+  transition: transform var(--transition-fast);
+  margin-left: var(--spacing-4);
 }
 
-/* Color Variants - Windows 11 Fluent Palette */
-
-/* Red - Annullate */
-.badge-red {
-  --badge-color-start: #f87171;
-  --badge-color-end: #dc2626;
-  --badge-color-glow: rgba(248, 113, 113, 0.3);
+.status-strip:hover .badge-value {
+  transform: scale(1.1);
 }
 
-/* Blue - Aperte */
-.badge-blue {
-  --badge-color-start: #60a5fa;
-  --badge-color-end: #2563eb;
-  --badge-color-glow: rgba(96, 165, 250, 0.3);
-}
-
-/* Green - Chiuse */
-.badge-green {
-  --badge-color-start: #4ade80;
-  --badge-color-end: #16a34a;
-  --badge-color-glow: rgba(74, 222, 128, 0.3);
-}
-
-/* Orange - In Lavorazione */
-.badge-orange {
-  --badge-color-start: #fb923c;
-  --badge-color-end: #ea580c;
-  --badge-color-glow: rgba(251, 146, 60, 0.3);
-}
-
-/* Purple - Inviate */
-.badge-purple {
-  --badge-color-start: #a78bfa;
-  --badge-color-end: #7c3aed;
-  --badge-color-glow: rgba(167, 139, 250, 0.3);
-}
-
-/* Dark Red - Eccezioni */
-.badge-darkred {
-  --badge-color-start: #ef4444;
-  --badge-color-end: #991b1b;
-  --badge-color-glow: rgba(239, 68, 68, 0.3);
-}
-
-/* Responsive adjustments - minimal needed for single column */
-@media (max-width: 768px) {
-  .badge-card {
-    padding: 5px 8px;
-    min-height: 40px;
-  }
-
-  .badge-value {
-    font-size: 14px;
-  }
-
-  .badge-label {
-    font-size: 9px;
-  }
-}
-
-/* Animation for initial load */
-@keyframes fadeInScale {
+/* Load Animation */
+@keyframes slideInRight {
   from {
     opacity: 0;
-    transform: scale(0.9);
+    transform: translateX(-10px);
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: translateX(0);
   }
 }
 
-.badge-card {
-  animation: fadeInScale 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+.status-strip {
+  animation: slideInRight 0.3s ease-out backwards;
 }
 
-.badge-card:nth-child(1) { animation-delay: 0ms; }
-.badge-card:nth-child(2) { animation-delay: 50ms; }
-.badge-card:nth-child(3) { animation-delay: 100ms; }
-.badge-card:nth-child(4) { animation-delay: 150ms; }
-.badge-card:nth-child(5) { animation-delay: 200ms; }
-.badge-card:nth-child(6) { animation-delay: 250ms; }
+/* Responsive - Mobile/Small Screens */
+@media (max-width: 768px) {
+  .status-strip {
+    height: 32px;
+    padding: 0 var(--spacing-4) 0 var(--spacing-6);
+  }
 
-/* Pulse animation for active processing */
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
+  .status-label {
+    font-size: var(--text-xs);
   }
-  50% {
-    opacity: 0.7;
-  }
-}
 
-/* Value change animation */
-@keyframes valueChange {
-  0%, 100% {
-    transform: scale(1);
+  .status-badge {
+    min-width: 24px;
+    height: 24px;
+    padding: 0 var(--spacing-2);
   }
-  50% {
-    transform: scale(1.1);
+
+  .badge-value {
+    font-size: var(--text-sm);
   }
 }

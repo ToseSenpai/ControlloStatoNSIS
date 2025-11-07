@@ -61,10 +61,10 @@
   display: grid;
   grid-template-columns: minmax(160px, 220px) 1fr;
   grid-template-rows: 1fr;
-  gap: 6px;
+  gap: var(--spacing-3);
   align-items: stretch;
   transition: grid-template-columns 300ms ease;
-  padding: 6px;
+  padding: var(--spacing-3);
 }
 
 .content-grid.sidebar-collapsed {
@@ -76,7 +76,7 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--spacing-2);
   overflow: visible;
   transition: all 300ms ease;
   min-height: 0;
@@ -85,8 +85,8 @@
 .sidebar-content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 48px 12px 12px 12px;
+  gap: var(--spacing-6);
+  padding: var(--spacing-8) var(--spacing-6);
   overflow-y: auto;
   overflow-x: hidden;
   flex: 1;
@@ -99,15 +99,15 @@
 }
 
 .section-panel {
-  padding: 10px;
+  padding: var(--spacing-5);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--spacing-5);
   transition: all 300ms ease;
 }
 
 .section-panel.compact {
-  padding: 2px;
+  padding: var(--spacing-1);
   align-items: center;
   justify-content: center;
 }
@@ -122,35 +122,17 @@
 }
 
 .section-panel h3 {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  line-height: var(--leading-tight);
   color: var(--color-text-primary);
-  margin: 0;
-  padding-bottom: var(--spacing-xs);
-  border-bottom: 2px solid var(--color-dhl-yellow);
+  margin: 0 0 var(--spacing-3) 0;
+  padding-bottom: var(--spacing-2);
 }
 
 .section-panel p {
   color: var(--color-text-secondary);
   margin: 0;
-}
-
-/* Status Bar */
-.status-bar {
-  height: 28px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  padding: 0 var(--spacing-md);
-  background-color: var(--color-bg-tertiary);
-  border-top: 1px solid var(--color-bg-elevated);
-  font-size: 12px;
-  color: var(--color-text-secondary);
-}
-
-.status-text {
-  font-size: 12px;
-  color: var(--color-text-secondary);
 }
 
 /* Responsive */
@@ -187,4 +169,26 @@
   .content-grid.sidebar-collapsed .sidebar {
     transform: translateX(-100%);
   }
+}
+
+/* App Version Badge */
+.app-version {
+  position: fixed;
+  bottom: 12px;
+  left: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  color: rgba(255, 255, 255, 0.5);
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  z-index: 9999;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  transition: opacity 0.3s ease;
+}
+
+.app-version:hover {
+  opacity: 0.8;
 }

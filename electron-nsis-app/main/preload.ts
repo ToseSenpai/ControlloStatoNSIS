@@ -103,6 +103,42 @@ contextBridge.exposeInMainWorld('electronAPI', {
     const subscription = () => callback();
     ipcRenderer.on('window-resized', subscription);
     return () => ipcRenderer.removeListener('window-resized', subscription);
+  },
+
+  // ===== AUTO-UPDATE APIs =====
+
+  // Get current app version
+  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+
+  // Manual download trigger
+  downloadUpdate: () => ipcRenderer.send('download-update'),
+
+  // Install update and restart
+  installUpdate: () => ipcRenderer.send('install-update'),
+
+  // Update event listeners
+  onUpdateAvailable: (callback: (info: any) => void) => {
+    const subscription = (_event: IpcRendererEvent, info: any) => callback(info);
+    ipcRenderer.on('update-available', subscription);
+    return () => ipcRenderer.removeListener('update-available', subscription);
+  },
+
+  onUpdateDownloaded: (callback: (info: any) => void) => {
+    const subscription = (_event: IpcRendererEvent, info: any) => callback(info);
+    ipcRenderer.on('update-downloaded', subscription);
+    return () => ipcRenderer.removeListener('update-downloaded', subscription);
+  },
+
+  onUpdateError: (callback: (error: string) => void) => {
+    const subscription = (_event: IpcRendererEvent, error: string) => callback(error);
+    ipcRenderer.on('update-error', subscription);
+    return () => ipcRenderer.removeListener('update-error', subscription);
+  },
+
+  onUpdateDownloadProgress: (callback: (progress: any) => void) => {
+    const subscription = (_event: IpcRendererEvent, progress: any) => callback(progress);
+    ipcRenderer.on('update-download-progress', subscription);
+    return () => ipcRenderer.removeListener('update-download-progress', subscription);
   }
 });
 
@@ -124,6 +160,14 @@ export interface ElectronAPI {
   onLogMessage: (callback: (message: string) => void) => () => void;
   onProcessingComplete: (callback: () => void) => () => void;
   registerWebView: (webContentsId: number) => void;
+  // Auto-update
+  getAppVersion: () => Promise<string>;
+  downloadUpdate: () => void;
+  installUpdate: () => void;
+  onUpdateAvailable: (callback: (info: any) => void) => () => void;
+  onUpdateDownloaded: (callback: (info: any) => void) => () => void;
+  onUpdateError: (callback: (error: string) => void) => () => void;
+  onUpdateDownloadProgress: (callback: (progress: any) => void) => () => void;
 }
 
 declare global {

@@ -1,5 +1,0 @@
-PyQt6
-PyQt6-WebEngine
-openpyxl
-pyinstaller
-PyQt6-Fluent-Widgets

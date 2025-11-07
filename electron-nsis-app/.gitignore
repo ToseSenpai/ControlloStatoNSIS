@@ -12,6 +12,13 @@ out/
 # TypeScript
 *.tsbuildinfo
 
+# Compiled TypeScript in source directories
+shared/**/*.js
+shared/**/*.js.map
+shared/**/*.d.ts
+shared/**/*.d.ts.map
+!shared/**/*.ts
+
 # IDE
 .vscode/
 .idea/
@@ -35,6 +42,11 @@ yarn-error.log*
 # Testing
 coverage/
 .nyc_output/
+
+# Test files and temporary
+test-*.js
+test-*.html
+nul
 
 # Electron
 electron-builder.yml

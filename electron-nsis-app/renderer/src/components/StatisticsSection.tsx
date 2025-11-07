@@ -39,25 +39,29 @@ const AnimatedCounter: React.FC<{ value: number }> = ({ value }) => {
 const StatisticsSection: React.FC = () => {
   const { badges } = useSelector((state: RootState) => state.ui);
 
-  const badgeData = [
-    { label: 'Annullate', value: badges.annullate, color: 'red' },
-    { label: 'Aperte', value: badges.aperte, color: 'blue' },
-    { label: 'Chiuse', value: badges.chiuse, color: 'green' },
-    { label: 'In Lavorazione', value: badges.inLavorazione, color: 'orange' },
-    { label: 'Inviate', value: badges.inviate, color: 'purple' },
-    { label: 'Eccezioni', value: badges.eccezioni, color: 'darkred' }
+  // Alternating DHL colors: yellow and red
+  const badgeData: Array<{ label: string; value: number; color: string }> = [
+    { label: 'Annullate', value: badges.annullate, color: 'yellow' },
+    { label: 'Aperte', value: badges.aperte, color: 'red' },
+    { label: 'Chiuse', value: badges.chiuse, color: 'yellow' },
+    { label: 'In Lavorazione', value: badges.inLavorazione, color: 'red' },
+    { label: 'Inviate', value: badges.inviate, color: 'yellow' },
+    { label: 'Eccezioni', value: badges.eccezioni, color: 'red' }
   ];
 
   return (
     <div className="statistics-section">
       <h3 className="section-title">Status</h3>
 
-      <div className="badges-grid">
-        {badgeData.map((badge) => (
-          <div key={badge.label} className={`badge-card badge-${badge.color}`}>
-            <span className="badge-label">{badge.label}</span>
+      <div className="status-list">
+        {badgeData.map((badge, index) => (
+          <div
+            key={badge.label}
+            className={`status-strip status-${badge.color}`}
+            style={{ animationDelay: `${index * 30}ms` }}
+          >
+            <span className="status-label">{badge.label}</span>
             <AnimatedCounter value={badge.value} />
-            <div className="badge-glow"></div>
           </div>
         ))}
       </div>

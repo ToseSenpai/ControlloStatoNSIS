@@ -1,103 +1,271 @@
-# Controllo Stato NSIS
+# ControlloStatoNSIS
 
-Applicazione desktop per il controllo dello stato delle spedizioni NSIS con interfaccia moderna e splash screen elegante.
+![Version](https://img.shields.io/badge/version-1.0.3-blue.svg)
+![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-## 🚀 Caratteristiche
+Applicazione desktop Electron per il controllo automatizzato dello stato delle pratiche NSIS (Nucleo Speciale Importazioni Speciali) su **impresa.gov.it**.
 
-- **Interfaccia Moderna**: Design pulito e professionale con PyQt6
-- **Splash Screen**: Barra di caricamento elegante con animazioni fluide
-- **Web Automation**: Integrazione con browser per controllo spedizioni
-- **Gestione Excel**: Lettura e scrittura automatica di file Excel
-- **Threading**: Operazioni asincrone per UI reattiva
-- **Stato Machine**: Gestione avanzata degli stati dell'applicazione
+## 🎯 Caratteristiche Principali
 
-## 📦 Installazione
+### Automazione Completa
+- ⚡ **Controllo automatico pratiche NSIS** - Elaborazione batch di codici pratiche
+- 📊 **Gestione Excel integrata** - Lettura e scrittura automatica con ExcelJS
+- 🌐 **Web automation** - Navigazione automatica su impresa.gov.it
+- 🔄 **Auto-update** - Sistema di aggiornamento automatico via GitHub Releases
 
-### Prerequisiti
-- Python 3.8+
+### Interfaccia Moderna
+- 🎨 **Windows 11 Fluent Design** - Interfaccia nativa con effetti acrilici
+- 🌙 **Dark theme Discord-inspired** - Design moderno con glassmorphism
+- 📱 **Dashboard interattiva** - Statistiche in tempo reale con animazioni smooth
+- 🏷️ **Icona CHECK NOS brandizzata** - Logo DHL-inspired giallo e rosso
+
+### Sistema Robusto
+- 🔐 **Esecuzione senza privilegi admin** - Installazione user-level
+- 📦 **Package NSIS ottimizzato** - Installer moderno con scelta directory
+- 🛡️ **Error logging avanzato** - Crash log e debug completo
+- 🔄 **Persistent/Memory session fallback** - Resiliente a problemi di permessi
+
+## 📸 Screenshot
+
+> Interfaccia principale con dashboard statistiche e webview integrato
+
+## 🚀 Installazione
+
+### Download
+
+Scarica l'installer dall'ultima release:
+
+**[📥 Download ControlloStatoNSIS v1.0.3](https://github.com/ToseSenpai/ControlloStatoNSIS/releases/latest)**
+
+### Installazione Rapida
+
+1. Esegui `ControlloStatoNSIS-1.0.3-Setup.exe`
+2. Scegli la directory di installazione (opzionale)
+3. Attendi il completamento
+4. L'app si avvierà automaticamente
+
+> **Nota**: Non sono richiesti privilegi amministrativi
+
+## 📖 Come Usare
+
+1. **Avvia l'applicazione** - Click sull'icona desktop o menu Start
+2. **Carica file Excel** - Click su "Scegli File Excel" e seleziona il file con i codici pratiche
+3. **Avvia elaborazione** - L'app legge i codici dalla colonna "ricerca"
+4. **Monitora progresso** - Dashboard mostra statistiche in tempo reale (Aperte, Chiuse, In Lavorazione, ecc.)
+5. **Risultati automatici** - I dati vengono scritti automaticamente nel file Excel
+
+### Colonne Excel Elaborate
+
+L'app scrive questi dati per ogni pratica:
+- Taric
+- Stato
+- Protocollo ingresso
+- Inserita il
+- Protocollo uscita
+- Provvedimento
+- Data Provvedimento
+- Codice richiesta
+- Tipo pratica
+- Note USMAF
+- Invio SUD
+
+## 🛠️ Sviluppo
+
+### Requisiti
+
+- Node.js 18+ e npm
+- Python 3.8+ (per generazione icone)
 - Windows 10/11
 
-### Dipendenze
+### Setup
+
 ```bash
-pip install -r requirements.txt
+# Clona il repository
+git clone https://github.com/ToseSenpai/ControlloStatoNSIS.git
+cd ControlloStatoNSIS
+
+# Naviga nell'app Electron
+cd electron-nsis-app
+
+# Installa dipendenze
+npm install
+
+# Avvia in modalità sviluppo
+npm start
 ```
 
-### Esecuzione
+### Build
+
 ```bash
-python main.py
+# Build completo (main + renderer)
+npm run build
+
+# Package installer Windows
+npm run package
+
+# L'installer sarà in: electron-nsis-app/release/
 ```
 
-## 🎯 Splash Screen
+### Generazione Icone
 
-L'applicazione include una splash screen moderna con:
-- **Barra di progresso** animata (5 secondi minimi)
-- **Testi dinamici** che cambiano durante il caricamento
-- **Design pulito** con colori DHL
-- **Transizioni fluide** tra splash e applicazione principale
+```bash
+# Genera icone Windows da logo sorgente
+cd electron-nsis-app/scripts
+python generate_app_icons.py
 
-## 🏗️ Struttura del Progetto
+# Output: assets/icon.ico, assets/icons/*.png
+```
+
+## 🏗️ Architettura
+
+### Stack Tecnologico
+
+| Tecnologia | Versione | Uso |
+|------------|----------|-----|
+| **Electron** | 28.3.3 | Desktop framework |
+| **React** | 18.2.0 | UI library |
+| **TypeScript** | 5.3.0 | Type safety |
+| **Redux Toolkit** | 2.0.0 | State management |
+| **Webpack** | 5.89.0 | Module bundler |
+| **ExcelJS** | 4.4.0 | Excel processing |
+| **electron-updater** | 6.6.2 | Auto-update system |
+| **Lucide React** | 0.552.0 | Icon library |
+
+### Struttura Progetto
 
 ```
 ControlloStatoNSIS/
-├── main.py                 # Entry point dell'applicazione
-├── splash_screen_simple.py # Splash screen moderna
-├── config.py              # Configurazione dell'applicazione
-├── dati.xlsx              # File Excel per i dati
-├── requirements.txt       # Dipendenze Python
-├── main_window/           # Moduli dell'interfaccia principale
-│   ├── app.py            # Applicazione principale
-│   ├── ui_manager.py     # Gestione UI
-│   ├── state_manager.py  # Gestione stati
-│   ├── excel_handler.py  # Gestione Excel
-│   ├── web_automation.py # Automazione web
-│   └── worker.py         # Thread worker
-├── assets/               # Risorse grafiche
-├── fonts/               # Font personalizzati
-├── icons/               # Icone SVG
-└── dist/                # Eseguibile compilato
-    └── ControlloStatoNSIS.exe
+├── electron-nsis-app/              # App Electron principale
+│   ├── main/                       # Processo main Electron
+│   │   ├── index.ts               # Entry point
+│   │   ├── ipc-handlers.ts        # IPC communication
+│   │   ├── browser-view-manager.ts # WebView automation
+│   │   ├── excel/                 # Excel handler
+│   │   └── workers/               # Worker threads
+│   ├── renderer/                   # Processo renderer (UI)
+│   │   ├── src/
+│   │   │   ├── components/        # React components
+│   │   │   │   ├── MainWindow.tsx
+│   │   │   │   ├── SplashScreen.tsx
+│   │   │   │   └── UpdateModal.tsx # Auto-update UI
+│   │   │   ├── store/             # Redux store
+│   │   │   │   └── slices/
+│   │   │   │       └── update-slice.ts
+│   │   │   └── styles/            # Global CSS
+│   │   └── index.html
+│   ├── shared/                     # Codice condiviso
+│   │   ├── constants/config.ts
+│   │   └── types/update-types.ts
+│   ├── assets/                     # Icone e risorse
+│   │   ├── icon.ico               # Icon CHECK NOS
+│   │   └── icons/                 # Multi-size icons
+│   ├── scripts/                    # Build scripts
+│   │   └── generate_app_icons.py
+│   └── package.json
+├── AUTO_UPDATE_README.md           # Documentazione auto-update
+├── AUTO_UPDATE_GUIDE.md            # Guida completa (1600 righe)
+└── readme.md                       # Questo file
 ```
 
-## 🔧 Compilazione
+## 🔄 Sistema Auto-Update
 
-### Creazione Eseguibile
+L'applicazione controlla automaticamente gli aggiornamenti all'avvio:
+
+1. **Check automatico** - Dopo 3 secondi dall'avvio (solo in production)
+2. **Download in background** - Progress bar con percentuale
+3. **Notifica utente** - Modal con "Installa e Riavvia"
+4. **Installazione automatica** - Update e restart trasparente
+
+### Per Sviluppatori
+
+Vedi la documentazione completa in [AUTO_UPDATE_README.md](electron-nsis-app/AUTO_UPDATE_README.md)
+
+**Processo di release:**
+
 ```bash
-python -m PyInstaller --onefile --windowed --icon=icon.ico --name="ControlloStatoNSIS" --add-data="assets;assets" --add-data="fonts;fonts" --add-data="icons;icons" main.py
+# 1. Incrementa versione in package.json
+# 2. Build e package
+npm run build && npm run package
+
+# 3. Crea release su GitHub con tag vX.X.X
+# 4. Carica Setup.exe e latest.yml
+# 5. Gli utenti ricevono l'update automaticamente
 ```
 
-### Distribuzione
-L'eseguibile è **portable** e può essere distribuito direttamente:
-- Copia la cartella `dist/`
-- Includi i file necessari (assets, fonts, icons, dati.xlsx, config.py)
-- L'applicazione funziona senza installazione
+## 🎨 Design System
 
-## 🎨 Design
+### Colori Brand (DHL-inspired)
 
-### Colori Principali
-- **DHL Yellow**: #FFB800 (accent color)
-- **Bianco**: #FFFFFF (background)
-- **Grigio Scuro**: #212529 (text)
-- **Grigio Chiaro**: #F8F9FA (progress background)
+- **Primary Yellow**: `#FFC107` - Pulsanti, highlights
+- **Accent Red**: `#F04747` - Badges, errori
+- **Dark Background**: `#36393f` - Sfondo principale
+- **Card Background**: `#2f3136` - Pannelli e card
 
-### Splash Screen
-- **Dimensioni**: 400x250 pixel
-- **Animazione**: 5 secondi con easing curve
-- **Testi**: 7 step di caricamento dinamici
-- **Progress Bar**: Gradiente giallo con bordi arrotondati
+### Design Patterns
 
-## 📝 Licenza
+- **Status strips** - Barre orizzontali 36px con bordo colorato
+- **Glassmorphism** - Effetti acrilici con backdrop-blur
+- **Animated counters** - Numeri con transizione smooth 500ms
+- **Progress overlay** - Fullscreen con blur e GIF loading
 
-Progetto sviluppato da ST - Made with ❤️
+## 📝 Script Disponibili
 
-## 🤝 Contributi
+```bash
+npm start                  # Dev mode (webpack-dev-server + Electron)
+npm run build              # Build completo (main + renderer)
+npm run build:main         # Build solo main process
+npm run build:renderer     # Build solo renderer
+npm run package            # Crea installer Windows (release/)
+npm run package:publish    # Package e pubblica su GitHub
+```
 
-Per contribuire al progetto:
-1. Fork del repository
-2. Crea un branch per la feature
-3. Commit delle modifiche
-4. Push al branch
-5. Crea una Pull Request
+## 🐛 Troubleshooting
 
-## 📞 Supporto
+### L'app non si avvia senza admin
 
-Per supporto tecnico o segnalazione bug, contatta lo sviluppatore.
+Se l'app richiede privilegi amministrativi:
+
+1. Disinstalla completamente
+2. Pulisci cache icone Windows:
+   ```powershell
+   ie4uinit.exe -show
+   ie4uinit.exe -ClearIconCache
+   ```
+3. Riavvia Windows Explorer: `taskkill /f /im explorer.exe && start explorer.exe`
+4. Reinstalla la versione più recente
+
+### Auto-update non funziona
+
+- Verifica che il repository GitHub sia pubblico
+- Controlla che la release sia marcata come "Latest"
+- Assicurati che `latest.yml` sia caricato negli assets
+- Controlla console browser (F12) per errori
+
+### Icone non aggiornate
+
+Windows cacha pesantemente le icone. Soluzioni:
+
+1. Riavvia Windows
+2. Pulisci cache: `del /F /Q "%localappdata%\IconCache.db"`
+3. Disinstalla e reinstalla l'app
+
+## 📄 Licenza
+
+MIT License
+
+Copyright (c) 2024 ST
+
+## 🙏 Credits
+
+- **Sviluppo**: ST
+- **Icone**: CHECK NOS branding (DHL-inspired)
+- **Framework**: Electron, React, TypeScript
+- **Icons library**: Lucide React
+- **Build con**: Claude Code
+
+---
+
+**Made with ❤️ using Electron + React + TypeScript**
+
+> Per domande o supporto, apri un issue su GitHub

@@ -1,0 +1,165 @@
+.update-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.update-modal {
+  background: linear-gradient(135deg, #2d3139 0%, #36393f 100%);
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.update-header h2 {
+  color: #ffffff;
+  margin: 0 0 24px 0;
+  font-size: 24px;
+  font-weight: 600;
+  text-align: center;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.update-content {
+  color: #b9bbbe;
+}
+
+.update-version {
+  text-align: center;
+  font-size: 16px;
+  margin-bottom: 24px;
+  color: #dcddde;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.update-version strong {
+  color: #00b0ff;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.update-progress {
+  margin: 24px 0;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00b0ff 0%, #0078d4 100%);
+  transition: width 0.3s ease;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 176, 255, 0.5);
+}
+
+.progress-text {
+  text-align: center;
+  font-size: 14px;
+  color: #b9bbbe;
+  font-weight: 500;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.update-ready {
+  text-align: center;
+  animation: fadeIn 0.4s ease;
+}
+
+.update-ready p {
+  color: #4caf50;
+  font-size: 16px;
+  margin-bottom: 24px;
+  font-weight: 500;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.install-button {
+  background: linear-gradient(135deg, #00b0ff 0%, #0078d4 100%);
+  color: white;
+  border: none;
+  padding: 14px 36px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 176, 255, 0.4);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.install-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 176, 255, 0.5);
+  background: linear-gradient(135deg, #00c4ff 0%, #0087e8 100%);
+}
+
+.install-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 176, 255, 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .update-modal {
+    padding: 24px;
+    width: 95%;
+  }
+
+  .update-header h2 {
+    font-size: 20px;
+  }
+
+  .update-version {
+    font-size: 14px;
+  }
+
+  .update-version strong {
+    font-size: 18px;
+  }
+
+  .install-button {
+    padding: 12px 28px;
+    font-size: 15px;
+  }
+}

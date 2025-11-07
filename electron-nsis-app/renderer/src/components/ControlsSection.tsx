@@ -1,6 +1,6 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { FileText, Loader2 } from 'lucide-react';
+import { FileText, Loader2, Play, Square } from 'lucide-react';
 import { RootState } from '../store/store';
 import { setFilePath, setExcelData } from '../store/slices/data-slice';
 import { setState } from '../store/slices/app-slice';
@@ -105,9 +105,7 @@ const ControlsSection: React.FC = () => {
             onClick={handleStart}
             disabled={!canStart}
           >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M3 2l10 6-10 6V2z" />
-            </svg>
+            <Play size={16} />
             <span>Avvia Elaborazione</span>
           </button>
         ) : (
@@ -115,9 +113,7 @@ const ControlsSection: React.FC = () => {
             className="btn-control btn-stop"
             onClick={handleStop}
           >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-              <rect x="3" y="3" width="10" height="10" />
-            </svg>
+            <Square size={16} fill="currentColor" />
             <span>Ferma</span>
           </button>
         )}

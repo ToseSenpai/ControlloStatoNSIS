@@ -3,47 +3,47 @@
 .controls-section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--spacing-6);
 }
 
 .section-title {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  line-height: var(--leading-tight);
   color: var(--color-text-primary);
-  margin: 0;
-  padding-bottom: 5px;
-  border-bottom: 1px solid var(--color-dhl-yellow);
+  margin: 0 0 var(--spacing-3) 0;
+  padding-bottom: var(--spacing-2);
 }
 
 /* Button Container - Vertical Layout */
 .controls-buttons {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--spacing-4);
 }
 
-/* Base Button Styling - Unified 32px height */
+/* Base Button Styling - Improved Height */
 .btn-control {
   width: 100%;
-  height: 32px;
-  padding: 6px 12px;
+  height: var(--height-button);
+  padding: var(--spacing-3) var(--spacing-6);
   border: none;
   border-radius: var(--radius-md);
-  font-weight: 600;
-  font-size: 12px;
+  font-weight: var(--font-semibold);
+  font-size: var(--text-sm);
+  line-height: var(--leading-tight);
   cursor: pointer;
   transition: all var(--transition-base);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--spacing-4);
 }
 
 /* File Selection Button - Yellow Gradient */
 .btn-select-file {
   background: linear-gradient(135deg, var(--color-dhl-yellow) 0%, var(--color-dhl-yellow-dark) 100%);
   color: var(--color-white);
-  justify-content: flex-start;
 }
 
 .btn-select-file:hover:not(:disabled) {
@@ -56,9 +56,14 @@
   cursor: not-allowed;
 }
 
+/* Button text styling - uniform across all buttons */
+.btn-control span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .button-text {
-  flex: 1;
-  text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -95,8 +100,8 @@
 .file-info {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 6px 10px;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4) var(--spacing-6);
   background-color: var(--color-bg-tertiary);
   border-radius: var(--radius-md);
   border-left: 4px solid var(--color-dhl-yellow);
@@ -109,20 +114,22 @@
 }
 
 .info-label {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--color-text-secondary);
-  font-weight: 500;
+  font-weight: var(--font-medium);
+  line-height: var(--leading-tight);
 }
 
 .info-value {
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: var(--color-text-primary);
-  font-weight: 600;
+  font-weight: var(--font-semibold);
+  line-height: var(--leading-tight);
 }
 
 /* Status Indicator */
 .controls-status {
-  padding: 6px 10px;
+  padding: var(--spacing-4) var(--spacing-6);
   background-color: var(--color-bg-tertiary);
   border-radius: var(--radius-md);
 }
@@ -130,27 +137,32 @@
 .status-indicator {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--spacing-3);
 }
 
+/* Status dot styling */
 .status-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  flex-shrink: 0;
+  transition: all var(--transition-base);
 }
 
+/* Dot colors for different states */
 .status-idle .status-dot {
-  background-color: var(--color-gray-400);
+  background-color: var(--color-text-muted);
   animation: none;
 }
 
 .status-loading .status-dot {
   background-color: var(--color-warning);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 .status-processing .status-dot {
   background-color: var(--color-info);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 .status-completed .status-dot {
@@ -164,23 +176,10 @@
 }
 
 .status-text {
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  line-height: var(--leading-tight);
   color: var(--color-text-primary);
-}
-
-/* Spinning animation for loading icon */
-.spinning {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 @keyframes pulse {

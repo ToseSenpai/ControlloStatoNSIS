@@ -42,6 +42,15 @@ interface ElectronAPI {
   // Generic IPC methods
   send: (channel: string, ...args: any[]) => void;
   onWindowResized: (callback: () => void) => () => void;
+
+  // Auto-update APIs
+  getAppVersion: () => Promise<string>;
+  downloadUpdate: () => void;
+  installUpdate: () => void;
+  onUpdateAvailable: (callback: (info: any) => void) => () => void;
+  onUpdateDownloaded: (callback: (info: any) => void) => () => void;
+  onUpdateError: (callback: (error: string) => void) => () => void;
+  onUpdateDownloadProgress: (callback: (progress: any) => void) => () => void;
 }
 
 declare global {
